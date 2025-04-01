@@ -3,25 +3,53 @@ import { useSubscriptions } from "@/contexts/SubscriptionContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { SubscriptionForm } from "./SubscriptionForm";
 import { useState } from "react";
-import { Plus, DollarSign, Calendar, BarChart, ArrowDownUp } from "lucide-react";
+import { Plus, DollarSign, Calendar, BarChart, ArrowDownUp, ExternalLink } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { getTotalMonthlyCost, getTotalYearlyCost } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpcomingRenewals } from "./UpcomingRenewals";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { SubscriptionServiceSelect } from "./SubscriptionServiceSelect";
+import { connectToSubscriptionService } from "@/lib/serviceConnection";
+import { toast } from "sonner";
 
 export function Dashboard() {
-  const { subscriptions, loading } = useSubscriptions();
+  const { subscriptions, loading, addSubscription } = useSubscriptions();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showServiceSelect, setShowServiceSelect] = useState(false);
+  const [selectedService, setSelectedService] = useState<any>(null);
   const navigate = useNavigate();
   
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/landing');
+  };
+  
+  const handleServiceSelect = (service: any) => {
+    setSelectedService(service);
+  };
+  
+  const handleConnectService = async (service: any) => {
+    toast.loading(`Connecting to ${service.name}...`);
+    
+    const subscriptionInfo = await connectToSubscriptionService(service.id);
+    
+    if (subscriptionInfo) {
+      // Pre-fill the subscription form with data from the service
+      setShowServiceSelect(false);
+      setShowAddDialog(true);
+      
+      // In a real app, we would pass the subscription info to the form
+      // For now, the form will handle this with mock data
+    } else if (service.id === 'other') {
+      // For "Other", just show the regular form
+      setShowServiceSelect(false);
+      setShowAddDialog(true);
+    }
   };
   
   const activeSubscriptions = subscriptions.filter(sub => sub.status === 'active');
@@ -55,16 +83,43 @@ export function Dashboard() {
           </p>
           
           <div className="mb-12">
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <Dialog 
+              open={showServiceSelect} 
+              onOpenChange={(open) => {
+                setShowServiceSelect(open);
+                if (!open) setSelectedService(null);
+              }}
+            >
               <DialogTrigger asChild>
-                <Button className="gap-2 px-8 py-6 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg animate-pulse">
+                <Button 
+                  className="gap-2 px-8 py-6 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg animate-pulse"
+                  onClick={() => setShowServiceSelect(true)}
+                >
                   <Plus className="h-6 w-6" />
                   <span>Add Your First Subscription</span>
                 </Button>
               </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <SubscriptionServiceSelect 
+                  onSelect={handleServiceSelect}
+                  onConnectService={handleConnectService}
+                />
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog 
+              open={showAddDialog} 
+              onOpenChange={(open) => {
+                setShowAddDialog(open);
+                if (!open && selectedService) {
+                  setSelectedService(null);
+                }
+              }}
+            >
               <SubscriptionForm 
                 onClose={() => setShowAddDialog(false)} 
                 mode="add" 
+                preselectedService={selectedService?.id}
               />
             </Dialog>
           </div>
