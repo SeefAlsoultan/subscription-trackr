@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -37,7 +36,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSubscriptions } from "@/contexts/SubscriptionContext";
-import { Subscription, SubscriptionFormData } from "@/types/subscription";
+import { Subscription, SubscriptionFormData, SubscriptionCategory } from "@/types/subscription";
 import { subscriptionServices } from "./SubscriptionServiceSelect";
 import { connectToSubscriptionService } from "@/lib/serviceConnection";
 
@@ -59,12 +58,12 @@ const formSchema = z.object({
   status: z.enum(["active", "pending", "cancelled", "expired"]),
 });
 
-type SubscriptionFormProps = {
+export interface SubscriptionFormProps {
   mode: "add" | "edit";
   subscriptionId?: string;
   onClose: () => void;
   preselectedService?: string;
-};
+}
 
 export function SubscriptionForm({
   mode,
@@ -154,8 +153,8 @@ export function SubscriptionForm({
   };
 
   // Map service ID to subscription category
-  const mapServiceToCategory = (serviceId: string): "entertainment" | "software" | "music" | "news" | "gaming" | "other" => {
-    const categoryMap: Record<string, "entertainment" | "software" | "music" | "news" | "gaming" | "other"> = {
+  const mapServiceToCategory = (serviceId: string): SubscriptionCategory => {
+    const categoryMap: Record<string, SubscriptionCategory> = {
       netflix: "entertainment",
       spotify: "music",
       disney: "entertainment",

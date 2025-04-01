@@ -7,12 +7,15 @@ export interface SubscriptionFormData {
   name: string;
   description?: string;
   url?: string;
+  logo?: string;
+  color?: string;
   cost: number;
   billingCycle: BillingCycle;
   category: SubscriptionCategory;
   startDate: Date;
   nextBillingDate: Date;
   status: SubscriptionStatus;
+  serviceId?: string;
 }
 
 export interface Subscription extends SubscriptionFormData {
@@ -20,5 +23,4 @@ export interface Subscription extends SubscriptionFormData {
   createdAt: Date;
   updatedAt: Date;
   userId?: string;
-  serviceId?: string;
 }

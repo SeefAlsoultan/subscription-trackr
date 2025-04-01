@@ -25,7 +25,8 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
     cost, 
     billingCycle, 
     nextBillingDate, 
-    status 
+    status,
+    id
   } = subscription;
   
   const daysUntilRenewal = getDaysUntilRenewal(nextBillingDate);
@@ -86,7 +87,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
               </Button>
             </DialogTrigger>
             <SubscriptionForm 
-              subscription={subscription} 
+              subscriptionId={id}
               onClose={() => setShowEditDialog(false)} 
               mode="edit" 
             />
