@@ -32,6 +32,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 15.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), 7),
+    startDate: addMonths(new Date(), -3), // Adding startDate
     status: "active",
     category: "entertainment",
     createdAt: new Date(),
@@ -46,6 +47,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 9.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), 14),
+    startDate: addMonths(new Date(), -6), // Adding startDate
     status: "active",
     category: "music",
     createdAt: new Date(),
@@ -60,6 +62,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 119.0,
     billingCycle: "yearly",
     nextBillingDate: addMonths(new Date(), 8),
+    startDate: addMonths(new Date(), -4), // Adding startDate
     status: "active",
     category: "other",
     createdAt: new Date(),
@@ -74,6 +77,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 7.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), 3),
+    startDate: addMonths(new Date(), -2), // Adding startDate
     status: "active",
     category: "entertainment",
     createdAt: new Date(),
@@ -88,6 +92,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 11.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), 21),
+    startDate: addMonths(new Date(), -1), // Adding startDate
     status: "active",
     category: "entertainment",
     createdAt: new Date(),
@@ -102,6 +107,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 14.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), -5),
+    startDate: addMonths(new Date(), -8), // Adding startDate
     status: "expired",
     category: "entertainment",
     createdAt: new Date(),
@@ -116,6 +122,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 9.99,
     billingCycle: "monthly",
     nextBillingDate: new Date(),
+    startDate: addMonths(new Date(), -5), // Adding startDate
     status: "pending",
     category: "music",
     createdAt: new Date(),
@@ -130,6 +137,7 @@ export const mockSubscriptions: Subscription[] = [
     cost: 7.99,
     billingCycle: "monthly",
     nextBillingDate: addDays(new Date(), -30),
+    startDate: addMonths(new Date(), -10), // Adding startDate
     status: "cancelled",
     category: "entertainment",
     createdAt: new Date(),
