@@ -57,6 +57,7 @@ export const getSubscriptions = async () => {
     return data.map(item => ({
       ...item,
       nextBillingDate: new Date(item.nextBillingDate),
+      startDate: new Date(item.startDate),
       createdAt: new Date(item.createdAt),
       updatedAt: new Date(item.updatedAt),
     })) as Subscription[];
@@ -75,7 +76,7 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
     const newSubscription = {
       ...subscription,
       id: uuidv4(),
-      user_id: 'local-user-id',
+      userId: 'local-user-id',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Subscription;
@@ -103,6 +104,7 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
     return {
       ...data[0],
       nextBillingDate: new Date(data[0].nextBillingDate),
+      startDate: new Date(data[0].startDate),
       createdAt: new Date(data[0].createdAt),
       updatedAt: new Date(data[0].updatedAt),
     } as Subscription;
@@ -145,6 +147,7 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
     return {
       ...data[0],
       nextBillingDate: new Date(data[0].nextBillingDate),
+      startDate: new Date(data[0].startDate),
       createdAt: new Date(data[0].createdAt),
       updatedAt: new Date(data[0].updatedAt),
     } as Subscription;
@@ -173,6 +176,56 @@ export const deleteSubscriptionFromDb = async (id: string) => {
     }
   } catch (error) {
     console.error('Error deleting subscription:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new user with email and password
+ */
+export const createUser = async (email: string, password: string) => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign in with Google OAuth
+ */
+export const signInWithGoogle = async () => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign out the current user
+ */
+export const signOut = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error signing out:', error);
     throw error;
   }
 };

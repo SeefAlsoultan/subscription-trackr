@@ -30,13 +30,13 @@ const AuthLayout = () => {
 
     checkAuth();
 
-    // Only set up auth listener if not in local mode
+    // Set up auth listener
     if (!isUsingLocalStorage) {
       const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
           navigate('/landing');
-        } else if (event === 'SIGNED_IN') {
+        } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthenticated(true);
         }
       });
