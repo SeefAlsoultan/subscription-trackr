@@ -4,30 +4,47 @@ import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 
+// Check if we're using local storage mode
+const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const AuthLayout = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If in local mode, consider user authenticated
+    if (isUsingLocalStorage) {
+      setIsAuthenticated(true);
+      return;
+    }
+
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setIsAuthenticated(false);
+      }
     };
 
     checkAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        navigate('/landing');
-      } else if (event === 'SIGNED_IN') {
-        setIsAuthenticated(true);
-      }
-    });
+    // Only set up auth listener if not in local mode
+    if (!isUsingLocalStorage) {
+      const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') {
+          setIsAuthenticated(false);
+          navigate('/landing');
+        } else if (event === 'SIGNED_IN') {
+          setIsAuthenticated(true);
+        }
+      });
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    }
   }, [navigate]);
 
   if (isAuthenticated === null) {
