@@ -35,7 +35,7 @@ const AuthLayout = () => {
       const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') {
           setIsAuthenticated(false);
-          navigate('/landing');
+          navigate('/register');
         } else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthenticated(true);
         }
@@ -56,7 +56,7 @@ const AuthLayout = () => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/landing" replace />;
+    return <Navigate to="/register" replace />;
   }
 
   return <Outlet />;
