@@ -8,13 +8,7 @@ import {
 } from "react";
 import { Subscription, SubscriptionFormData } from "../types/subscription";
 import { toast } from "sonner";
-import {
-  getSubscriptions,
-  addSubscriptionToDb,
-  updateSubscriptionInDb,
-  deleteSubscriptionFromDb,
-  getCurrentUser
-} from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { calculateNextBillingDate } from "@/lib/data";
 
 interface SubscriptionContextType {
@@ -43,10 +37,24 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchSubscriptions = async () => {
       try {
-        const user = await getCurrentUser();
+        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const data = await getSubscriptions();
-          setSubscriptions(data);
+          const { data, error } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (error) throw error;
+          
+          const formattedData = data?.map(item => ({
+            ...item,
+            nextBillingDate: new Date(item.nextBillingDate),
+            startDate: new Date(item.startDate),
+            createdAt: new Date(item.createdAt),
+            updatedAt: new Date(item.updatedAt),
+          })) as Subscription[] || [];
+          
+          setSubscriptions(formattedData);
         }
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
@@ -83,24 +91,67 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   
   const addSubscription = async (subscription: SubscriptionFormData) => {
     try {
-      const newSubscription = await addSubscriptionToDb(subscription);
-      setSubscriptions([...subscriptions, newSubscription]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const newSubscription = {
+        ...subscription,
+        user_id: user.id,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert([newSubscription])
+        .select();
+        
+      if (error) throw error;
+      
+      const formattedSubscription = {
+        ...data[0],
+        nextBillingDate: new Date(data[0].nextBillingDate),
+        startDate: new Date(data[0].startDate),
+        createdAt: new Date(data[0].createdAt),
+        updatedAt: new Date(data[0].updatedAt),
+      } as Subscription;
+      
+      setSubscriptions([...subscriptions, formattedSubscription]);
       toast.success(`${subscription.name} subscription added!`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding subscription:", error);
-      toast.error("Failed to add subscription");
+      toast.error(error.message || "Failed to add subscription");
     }
   };
   
   const updateSubscription = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
     try {
-      const updated = await updateSubscriptionInDb(id, updatedData);
+      const updatePayload = {
+        ...updatedData,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update(updatePayload)
+        .eq('id', id)
+        .select();
+        
+      if (error) throw error;
+      
+      const formattedSubscription = {
+        ...data[0],
+        nextBillingDate: new Date(data[0].nextBillingDate),
+        startDate: new Date(data[0].startDate),
+        createdAt: new Date(data[0].createdAt),
+        updatedAt: new Date(data[0].updatedAt),
+      } as Subscription;
       
       setSubscriptions(subscriptions.map(subscription => {
         if (subscription.id === id) {
           const updatedSubscription = {
             ...subscription,
-            ...updated
+            ...formattedSubscription
           };
           
           // Recalculate next billing date if billing cycle changes
@@ -114,25 +165,31 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       }));
       
       toast.success("Subscription updated!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating subscription:", error);
-      toast.error("Failed to update subscription");
+      toast.error(error.message || "Failed to update subscription");
     }
   };
   
   const deleteSubscription = async (id: string) => {
     try {
       const subscription = subscriptions.find(sub => sub.id === id);
-      await deleteSubscriptionFromDb(id);
+      
+      const { error } = await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
       
       setSubscriptions(subscriptions.filter(subscription => subscription.id !== id));
       
       if (subscription) {
         toast.success(`${subscription.name} subscription deleted!`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting subscription:", error);
-      toast.error("Failed to delete subscription");
+      toast.error(error.message || "Failed to delete subscription");
     }
   };
   

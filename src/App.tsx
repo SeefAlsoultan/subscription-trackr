@@ -26,6 +26,21 @@ const App = () => {
       console.log("Current auth state:", data);
     };
     checkAuth();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
+      
+      if (event === 'SIGNED_IN') {
+        toast.success("Successfully signed in!");
+      } else if (event === 'SIGNED_OUT') {
+        toast.info("You have been signed out");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
