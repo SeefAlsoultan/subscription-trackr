@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import AuthLayout from "./components/AuthLayout";
 import { useEffect } from "react";
 import { supabase } from "./lib/supabase";
+import { toast } from "sonner";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -31,6 +32,15 @@ const App = () => {
         console.log("Current auth state:", data);
       };
       checkAuth();
+    } else {
+      // Display a toast notification if Supabase credentials are missing
+      toast.warning(
+        "Running without Supabase connection. Please provide Supabase credentials for full functionality.",
+        {
+          duration: 6000,
+          id: "supabase-missing"
+        }
+      );
     }
   }, []);
 

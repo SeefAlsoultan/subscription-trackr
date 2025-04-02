@@ -10,6 +10,11 @@ import { Loader2, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import PageTransition from '@/components/PageTransition';
 
+// Check if Supabase credentials are available
+const hasSupabaseCredentials = 
+  import.meta.env.VITE_SUPABASE_URL && 
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,11 +35,19 @@ const Register = () => {
       return;
     }
 
+    if (!hasSupabaseCredentials) {
+      toast.error('Supabase connection is required for registration. Please add Supabase credentials to your environment variables.');
+      return;
+    }
+
     try {
       setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        }
       });
 
       if (error) throw error;
@@ -49,18 +62,29 @@ const Register = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!hasSupabaseCredentials) {
+      toast.error('Supabase connection is required for Google sign-in. Please add Supabase credentials to your environment variables.');
+      return;
+    }
+
     try {
       setGoogleLoading(true);
       const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      // Using signInWithOAuth with more precise options
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         },
       });
 
       if (error) throw error;
-      // No need to do anything here, the browser will be redirected by Supabase
+      // Browser will be redirected by Supabase
     } catch (error: any) {
       toast.error(error.message || 'Google sign-in failed');
       setGoogleLoading(false);
@@ -84,7 +108,7 @@ const Register = () => {
               className="w-full bg-white text-gray-800 hover:bg-gray-100" 
               variant="outline"
               onClick={handleGoogleSignIn}
-              disabled={googleLoading}
+              disabled={googleLoading || !hasSupabaseCredentials}
             >
               {googleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -95,6 +119,12 @@ const Register = () => {
               )}
               Continue with Google
             </Button>
+            
+            {!hasSupabaseCredentials && (
+              <div className="text-amber-400 text-sm text-center px-2 py-1 bg-amber-950/30 rounded-md">
+                Supabase credentials are missing. Authentication is disabled.
+              </div>
+            )}
             
             <div className="flex items-center gap-4 py-2">
               <Separator className="flex-1 bg-gray-700" />
@@ -148,7 +178,7 @@ const Register = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white" 
-                  disabled={loading}
+                  disabled={loading || !hasSupabaseCredentials}
                 >
                   {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
                   Register with Email
