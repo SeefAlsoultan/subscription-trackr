@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
 
-// Default values for development - replace these with your actual Supabase project details
+// Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
@@ -18,6 +18,7 @@ if (isUsingLocalStorage) {
   );
 }
 
+// Create and export the Supabase client
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getCurrentUser = async () => {
@@ -188,6 +189,9 @@ export const createUser = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`
+      }
     });
 
     if (error) throw error;
@@ -206,7 +210,7 @@ export const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
