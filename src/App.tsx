@@ -12,36 +12,20 @@ import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import AuthLayout from "./components/AuthLayout";
 import { useEffect } from "react";
-import { supabase } from "./lib/supabase";
+import { supabase } from "./integrations/supabase/client";
 import { toast } from "sonner";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-// Check if Supabase credentials are available
-const hasSupabaseCredentials = 
-  import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 const App = () => {
   useEffect(() => {
     // Log authentication state on app load for debugging
-    if (hasSupabaseCredentials) {
-      const checkAuth = async () => {
-        const { data } = await supabase.auth.getSession();
-        console.log("Current auth state:", data);
-      };
-      checkAuth();
-    } else {
-      // Display a toast notification if Supabase credentials are missing
-      toast.warning(
-        "Running without Supabase connection. Please provide Supabase credentials for full functionality.",
-        {
-          duration: 6000,
-          id: "supabase-missing"
-        }
-      );
-    }
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      console.log("Current auth state:", data);
+    };
+    checkAuth();
   }, []);
 
   return (
