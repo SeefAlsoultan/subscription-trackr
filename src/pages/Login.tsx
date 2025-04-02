@@ -44,7 +44,6 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      // Fix: Use correct URL for redirection
       const redirectUrl = `${window.location.origin}/dashboard`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -63,11 +62,11 @@ const Login = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-4">
+        <Card className="w-full max-w-md bg-gray-800/95 border-gray-700 shadow-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Login</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">Login</CardTitle>
+            <CardDescription className="text-gray-300">
               Enter your credentials to access your subscription dashboard
             </CardDescription>
           </CardHeader>
@@ -75,7 +74,7 @@ const Login = () => {
           <CardContent className="space-y-4">
             <Button 
               type="button" 
-              className="w-full" 
+              className="w-full bg-white text-gray-800 hover:bg-gray-100" 
               variant="outline"
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
@@ -91,15 +90,15 @@ const Login = () => {
             </Button>
             
             <div className="flex items-center gap-4 py-2">
-              <Separator className="flex-1" />
-              <span className="text-xs text-muted-foreground">OR</span>
-              <Separator className="flex-1" />
+              <Separator className="flex-1 bg-gray-700" />
+              <span className="text-xs text-gray-400">OR</span>
+              <Separator className="flex-1 bg-gray-700" />
             </div>
             
             <form onSubmit={handleLogin}>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-200">
                     Email
                   </label>
                   <Input
@@ -109,10 +108,11 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-200">
                     Password
                   </label>
                   <Input
@@ -121,15 +121,20 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
                   />
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white" 
+                  disabled={loading}
+                >
                   {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
                   Login with Email
                 </Button>
                 
-                <div className="text-center text-sm">
+                <div className="text-center text-sm text-gray-400">
                   Don't have an account?{' '}
                   <Link to="/register" className="text-primary hover:underline">
                     Register

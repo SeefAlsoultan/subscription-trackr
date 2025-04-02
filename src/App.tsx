@@ -23,12 +23,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
-            {/* Redirect from root to registration */}
-            <Route path="/" element={<Navigate to="/register" replace />} />
             
             {/* Protected routes */}
             <Route element={<AuthLayout />}>
