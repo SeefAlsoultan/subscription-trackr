@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,18 @@ const Login = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/dashboard');
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -26,15 +38,20 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      
+      // Log successful login and session data
+      console.log('Login successful:', data);
+      
       toast.success('Logged in successfully!');
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error(error.message || 'Failed to login');
     } finally {
       setLoading(false);
@@ -46,21 +63,22 @@ const Login = () => {
       setGoogleLoading(true);
       const redirectUrl = `${window.location.origin}/dashboard`;
       
+      console.log('Starting Google sign-in with redirect to:', redirectUrl);
+      
       // Using signInWithOAuth with more precise options
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
         },
       });
 
       if (error) throw error;
+      
+      console.log('Google sign-in initiated:', data);
       // Browser will be redirected by Supabase
     } catch (error: any) {
+      console.error('Google sign-in error:', error);
       toast.error(error.message || 'Google sign-in failed');
       setGoogleLoading(false);
     }

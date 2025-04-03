@@ -1,347 +1,349 @@
-
+import { useEffect, useState } from "react";
 import { useSubscriptions } from "@/contexts/SubscriptionContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SubscriptionCard } from "./SubscriptionCard";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { SubscriptionForm } from "./SubscriptionForm";
-import { useState } from "react";
-import { Plus, DollarSign, Calendar, BarChart, ArrowDownUp, ExternalLink } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { getTotalMonthlyCost, getTotalYearlyCost } from "@/lib/data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UpcomingRenewals } from "./UpcomingRenewals";
-import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
-import { SubscriptionServiceSelect } from "./SubscriptionServiceSelect";
-import { connectToSubscriptionService } from "@/lib/serviceConnection";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { SubscriptionDialog } from "./SubscriptionDialog";
+import { SubscriptionCard } from "./SubscriptionCard";
+import { SubscriptionList } from "./SubscriptionList";
+import { SubscriptionStats } from "./SubscriptionStats";
+import { SubscriptionChart } from "./SubscriptionChart";
+import { SubscriptionCalendar } from "./SubscriptionCalendar";
+import { EmptyState } from "./EmptyState";
+import { Skeleton } from "./ui/skeleton";
+import { SubscriptionFormData } from "@/types/subscription";
+import PageTransition from "./PageTransition";
+import SupabaseConnectionTest from "./SupabaseConnectionTest";
 
 export function Dashboard() {
-  const { subscriptions, loading, addSubscription } = useSubscriptions();
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showServiceSelect, setShowServiceSelect] = useState(false);
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const navigate = useNavigate();
-  
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/landing');
+  const { subscriptions, loading } = useSubscriptions();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
+
+  // Check if we're in development mode and using local storage
+  const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
   };
-  
-  const handleServiceSelect = (service: any) => {
-    setSelectedService(service);
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
   };
-  
-  const handleConnectService = async (service: any) => {
-    toast.loading(`Connecting to ${service.name}...`);
-    
-    const subscriptionInfo = await connectToSubscriptionService(service.id);
-    
-    if (subscriptionInfo) {
-      // Pre-fill the subscription form with data from the service
-      setShowServiceSelect(false);
-      setShowAddDialog(true);
-      
-      // In a real app, we would pass the subscription info to the form
-      // For now, the form will handle this with mock data
-    } else if (service.id === 'other') {
-      // For "Other", just show the regular form
-      setShowServiceSelect(false);
-      setShowAddDialog(true);
-    }
+
+  const initialFormData: SubscriptionFormData = {
+    name: "",
+    description: "",
+    cost: 0,
+    billingCycle: "monthly",
+    startDate: new Date(),
+    nextBillingDate: new Date(),
+    category: "entertainment",
+    url: "",
+    logo: "",
+    color: "#10b981",
+    status: "active",
+    notes: "",
   };
-  
-  const activeSubscriptions = subscriptions.filter(sub => sub.status === 'active');
-  const totalMonthly = getTotalMonthlyCost(activeSubscriptions);
-  const totalYearly = getTotalYearlyCost(activeSubscriptions);
-  
-  // Group subscriptions by status
-  const activeCount = subscriptions.filter(sub => sub.status === 'active').length;
-  const pendingCount = subscriptions.filter(sub => sub.status === 'pending').length;
-  const cancelledCount = subscriptions.filter(sub => sub.status === 'cancelled').length;
-  const expiredCount = subscriptions.filter(sub => sub.status === 'expired').length;
-  
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your subscriptions...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (subscriptions.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
-        <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4">Welcome to SubscriptionTrackr!</h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Start managing your subscriptions by adding your first one
-          </p>
-          
-          <div className="mb-12">
-            <Dialog 
-              open={showServiceSelect} 
-              onOpenChange={(open) => {
-                setShowServiceSelect(open);
-                if (!open) setSelectedService(null);
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button 
-                  className="gap-2 px-8 py-6 text-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg animate-pulse"
-                  onClick={() => setShowServiceSelect(true)}
-                >
-                  <Plus className="h-6 w-6" />
-                  <span>Add Your First Subscription</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <SubscriptionServiceSelect 
-                  onSelect={handleServiceSelect}
-                  onConnectService={handleConnectService}
-                />
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog 
-              open={showAddDialog} 
-              onOpenChange={(open) => {
-                setShowAddDialog(open);
-                if (!open && selectedService) {
-                  setSelectedService(null);
-                }
-              }}
-            >
-              <SubscriptionForm 
-                onClose={() => setShowAddDialog(false)} 
-                mode="add" 
-                preselectedService={selectedService?.id}
-              />
-            </Dialog>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gray-800/50 border-dashed border-2 border-gray-700">
-              <CardContent className="p-6 text-center">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-semibold text-lg mb-2">Track Spending</h3>
-                <p className="text-muted-foreground">Never lose track of how much you're spending on subscriptions</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gray-800/50 border-dashed border-2 border-gray-700">
-              <CardContent className="p-6 text-center">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-semibold text-lg mb-2">Renewal Alerts</h3>
-                <p className="text-muted-foreground">Get notified before you're charged for any subscription</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gray-800/50 border-dashed border-2 border-gray-700">
-              <CardContent className="p-6 text-center">
-                <ArrowDownUp className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="font-semibold text-lg mb-2">Manage Everything</h3>
-                <p className="text-muted-foreground">Edit, update or cancel all your subscriptions in one place</p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-start mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-1">Subscription Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage and track all your subscriptions in one place
-          </p>
+    <PageTransition>
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">Subscriptions Dashboard</h2>
+          <div className="flex items-center space-x-2">
+            <Button onClick={handleOpenDialog}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Subscription
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                <span>Add Subscription</span>
-              </Button>
-            </DialogTrigger>
-            <SubscriptionForm 
-              onClose={() => setShowAddDialog(false)} 
-              mode="add" 
-            />
-          </Dialog>
+
+        {isUsingLocalStorage && (
+          <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-4">
+                <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 dark:text-amber-400">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-amber-800 dark:text-amber-300">Development Mode</h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                    Running in local storage mode without Supabase. To enable full functionality, add Supabase credentials to your environment variables.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <SupabaseConnectionTest />
+
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
+          </TabsList>
           
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" />
-              Monthly Cost
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalMonthly)}</div>
-            <p className="text-xs text-muted-foreground">
-              For {activeCount} active subscriptions
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              Yearly Cost
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalYearly)}</div>
-            <p className="text-xs text-muted-foreground">
-              Annual projection based on current subscriptions
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BarChart className="h-4 w-4 text-primary" />
-              Subscription Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{subscriptions.length} Total</div>
-            <div className="text-xs text-muted-foreground flex gap-2">
-              <span className="bg-green-500 px-1.5 py-0.5 rounded-full text-white">{activeCount} active</span>
-              <span className="bg-yellow-500 px-1.5 py-0.5 rounded-full text-white">{pendingCount} pending</span>
-              <span className="bg-red-500 px-1.5 py-0.5 rounded-full text-white">{cancelledCount} cancelled</span>
-              <span className="bg-gray-500 px-1.5 py-0.5 rounded-full text-white">{expiredCount} expired</span>
+          <TabsContent value="overview" className="space-y-4">
+            <SubscriptionStats />
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+              <Card className="lg:col-span-4">
+                <CardHeader>
+                  <CardTitle>Subscription Breakdown</CardTitle>
+                  <CardDescription>
+                    Your monthly spending by category
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  <SubscriptionChart />
+                </CardContent>
+              </Card>
+              
+              <Card className="lg:col-span-3">
+                <CardHeader>
+                  <CardTitle>Upcoming Renewals</CardTitle>
+                  <CardDescription>
+                    Subscriptions renewing in the next 30 days
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ) : subscriptions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No upcoming renewals. Add a subscription to get started.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {subscriptions
+                        .filter(sub => {
+                          const today = new Date();
+                          const thirtyDaysFromNow = new Date();
+                          thirtyDaysFromNow.setDate(today.getDate() + 30);
+                          return (
+                            sub.nextBillingDate >= today &&
+                            sub.nextBillingDate <= thirtyDaysFromNow &&
+                            sub.status === "active"
+                          );
+                        })
+                        .sort((a, b) => a.nextBillingDate.getTime() - b.nextBillingDate.getTime())
+                        .slice(0, 5)
+                        .map(subscription => (
+                          <div
+                            key={subscription.id}
+                            className="flex items-center justify-between border-b pb-2 last:border-0"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div
+                                className="h-8 w-8 rounded-full"
+                                style={{ backgroundColor: subscription.color }}
+                              />
+                              <div>
+                                <p className="font-medium">{subscription.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {subscription.nextBillingDate.toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="font-medium">
+                              ${subscription.cost.toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      {subscriptions.filter(sub => {
+                        const today = new Date();
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(today.getDate() + 30);
+                        return (
+                          sub.nextBillingDate >= today &&
+                          sub.nextBillingDate <= thirtyDaysFromNow &&
+                          sub.status === "active"
+                        );
+                      }).length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No upcoming renewals in the next 30 days.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Your Subscriptions</h3>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={view === "grid" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setView("grid")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-1"
+                    >
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Grid
+                  </Button>
+                  <Button
+                    variant={view === "list" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setView("list")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-1"
+                    >
+                      <line x1="8" y1="6" x2="21" y2="6" />
+                      <line x1="8" y1="12" x2="21" y2="12" />
+                      <line x1="8" y1="18" x2="21" y2="18" />
+                      <line x1="3" y1="6" x2="3.01" y2="6" />
+                      <line x1="3" y1="12" x2="3.01" y2="12" />
+                      <line x1="3" y1="18" x2="3.01" y2="18" />
+                    </svg>
+                    List
+                  </Button>
+                </div>
+              </div>
+              
+              {loading ? (
+                view === "grid" ? (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(6)].map((_, i) => (
+                      <Card key={i} className="overflow-hidden">
+                        <div className="h-32">
+                          <Skeleton className="h-full w-full" />
+                        </div>
+                        <CardContent className="p-4">
+                          <Skeleton className="h-4 w-3/4 mb-2" />
+                          <Skeleton className="h-4 w-1/2" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <div className="p-4 space-y-4">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="flex items-center space-x-4">
+                          <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="space-y-2 flex-1">
+                            <Skeleton className="h-4 w-1/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                          </div>
+                          <Skeleton className="h-8 w-24" />
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )
+              ) : subscriptions.length === 0 ? (
+                <EmptyState onAddSubscription={handleOpenDialog} />
+              ) : view === "grid" ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {subscriptions.map(subscription => (
+                    <SubscriptionCard
+                      key={subscription.id}
+                      subscription={subscription}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <SubscriptionList subscriptions={subscriptions} />
+              )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Spending Analytics</CardTitle>
+                <CardDescription>
+                  Track and analyze your subscription spending over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                {loading ? (
+                  <Skeleton className="h-[350px] w-full" />
+                ) : subscriptions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[350px] space-y-3">
+                    <p className="text-muted-foreground">No subscription data available</p>
+                    <Button onClick={handleOpenDialog}>Add Subscription</Button>
+                  </div>
+                ) : (
+                  <div className="h-[350px]">
+                    <SubscriptionChart />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="calendar" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Calendar</CardTitle>
+                <CardDescription>
+                  View your upcoming subscription renewals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[500px] w-full" />
+                ) : subscriptions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[500px] space-y-3">
+                    <p className="text-muted-foreground">No subscription data available</p>
+                    <Button onClick={handleOpenDialog}>Add Subscription</Button>
+                  </div>
+                ) : (
+                  <div className="h-[500px]">
+                    <SubscriptionCalendar subscriptions={subscriptions} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
       
-      <Tabs defaultValue="all" className="mb-8">
-        <TabsList>
-          <TabsTrigger value="all">All ({subscriptions.length})</TabsTrigger>
-          <TabsTrigger value="active">Active ({activeCount})</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled ({cancelledCount})</TabsTrigger>
-          <TabsTrigger value="expired">Expired ({expiredCount})</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subscriptions.map((subscription) => (
-              <SubscriptionCard 
-                key={subscription.id} 
-                subscription={subscription} 
-              />
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="active" className="mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subscriptions
-              .filter(sub => sub.status === 'active')
-              .map((subscription) => (
-                <SubscriptionCard 
-                  key={subscription.id} 
-                  subscription={subscription} 
-                />
-              ))}
-            {activeCount === 0 && (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No active subscriptions found</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => setShowAddDialog(true)}
-                >
-                  Add a subscription
-                </Button>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="pending" className="mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subscriptions
-              .filter(sub => sub.status === 'pending')
-              .map((subscription) => (
-                <SubscriptionCard 
-                  key={subscription.id} 
-                  subscription={subscription} 
-                />
-              ))}
-            {pendingCount === 0 && (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No pending subscriptions found</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="cancelled" className="mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subscriptions
-              .filter(sub => sub.status === 'cancelled')
-              .map((subscription) => (
-                <SubscriptionCard 
-                  key={subscription.id} 
-                  subscription={subscription} 
-                />
-              ))}
-            {cancelledCount === 0 && (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No cancelled subscriptions found</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="expired" className="mt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subscriptions
-              .filter(sub => sub.status === 'expired')
-              .map((subscription) => (
-                <SubscriptionCard 
-                  key={subscription.id} 
-                  subscription={subscription} 
-                />
-              ))}
-            {expiredCount === 0 && (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">No expired subscriptions found</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-      
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">Upcoming Renewals</h2>
-        <UpcomingRenewals />
-      </div>
-    </div>
+      <SubscriptionDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        initialData={initialFormData}
+      />
+    </PageTransition>
   );
 }

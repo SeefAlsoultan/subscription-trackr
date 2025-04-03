@@ -46,15 +46,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
             
           if (error) throw error;
           
-          const formattedData = data?.map(item => ({
-            ...item,
-            nextBillingDate: new Date(item.nextBillingDate),
-            startDate: new Date(item.startDate),
-            createdAt: new Date(item.createdAt),
-            updatedAt: new Date(item.updatedAt),
-          })) as Subscription[] || [];
-          
-          setSubscriptions(formattedData);
+          if (data) {
+            const formattedData = data.map(item => ({
+              ...item,
+              id: item.id,
+              nextBillingDate: new Date(item.nextBillingDate),
+              startDate: new Date(item.startDate),
+              createdAt: new Date(item.createdAt),
+              updatedAt: new Date(item.updatedAt),
+            })) as Subscription[];
+            
+            setSubscriptions(formattedData);
+          }
         }
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
@@ -108,16 +111,18 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         
       if (error) throw error;
       
-      const formattedSubscription = {
-        ...data[0],
-        nextBillingDate: new Date(data[0].nextBillingDate),
-        startDate: new Date(data[0].startDate),
-        createdAt: new Date(data[0].createdAt),
-        updatedAt: new Date(data[0].updatedAt),
-      } as Subscription;
-      
-      setSubscriptions([...subscriptions, formattedSubscription]);
-      toast.success(`${subscription.name} subscription added!`);
+      if (data && data[0]) {
+        const formattedSubscription = {
+          ...data[0],
+          nextBillingDate: new Date(data[0].nextBillingDate),
+          startDate: new Date(data[0].startDate),
+          createdAt: new Date(data[0].createdAt),
+          updatedAt: new Date(data[0].updatedAt),
+        } as Subscription;
+        
+        setSubscriptions([...subscriptions, formattedSubscription]);
+        toast.success(`${subscription.name} subscription added!`);
+      }
     } catch (error: any) {
       console.error("Error adding subscription:", error);
       toast.error(error.message || "Failed to add subscription");
@@ -139,32 +144,34 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         
       if (error) throw error;
       
-      const formattedSubscription = {
-        ...data[0],
-        nextBillingDate: new Date(data[0].nextBillingDate),
-        startDate: new Date(data[0].startDate),
-        createdAt: new Date(data[0].createdAt),
-        updatedAt: new Date(data[0].updatedAt),
-      } as Subscription;
-      
-      setSubscriptions(subscriptions.map(subscription => {
-        if (subscription.id === id) {
-          const updatedSubscription = {
-            ...subscription,
-            ...formattedSubscription
-          };
-          
-          // Recalculate next billing date if billing cycle changes
-          if (updatedData.billingCycle && (updatedData.billingCycle !== subscription.billingCycle)) {
-            updatedSubscription.nextBillingDate = calculateNextBillingDate(new Date(), updatedData.billingCycle);
+      if (data && data[0]) {
+        const formattedSubscription = {
+          ...data[0],
+          nextBillingDate: new Date(data[0].nextBillingDate),
+          startDate: new Date(data[0].startDate),
+          createdAt: new Date(data[0].createdAt),
+          updatedAt: new Date(data[0].updatedAt),
+        } as Subscription;
+        
+        setSubscriptions(subscriptions.map(subscription => {
+          if (subscription.id === id) {
+            const updatedSubscription = {
+              ...subscription,
+              ...formattedSubscription
+            };
+            
+            // Recalculate next billing date if billing cycle changes
+            if (updatedData.billingCycle && (updatedData.billingCycle !== subscription.billingCycle)) {
+              updatedSubscription.nextBillingDate = calculateNextBillingDate(new Date(), updatedData.billingCycle);
+            }
+            
+            return updatedSubscription;
           }
-          
-          return updatedSubscription;
-        }
-        return subscription;
-      }));
-      
-      toast.success("Subscription updated!");
+          return subscription;
+        }));
+        
+        toast.success("Subscription updated!");
+      }
     } catch (error: any) {
       console.error("Error updating subscription:", error);
       toast.error(error.message || "Failed to update subscription");

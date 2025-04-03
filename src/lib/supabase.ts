@@ -1,32 +1,15 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
-// Get Supabase credentials from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+// This file now uses the main Supabase client from integrations/supabase/client.ts
+export const supabase = supabaseClient;
 
-// In-memory storage for subscriptions when not connected to Supabase
+// In-memory storage for subscriptions as fallback (shouldn't be needed anymore)
 let localSubscriptions: Subscription[] = [];
-let isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Log a warning if using local storage instead of Supabase
-if (isUsingLocalStorage) {
-  console.warn(
-    'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
-  );
-}
-
-// Create and export the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getCurrentUser = async () => {
-  if (isUsingLocalStorage) {
-    // Return a mock user in local mode
-    return { id: 'local-user-id', email: 'local@example.com' };
-  }
-  
   try {
     const { data: { user } } = await supabase.auth.getUser();
     return user;
@@ -233,3 +216,17 @@ export const signOut = async () => {
     throw error;
   }
 };
+
+// Get Supabase credentials from environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+
+// In-memory storage for subscriptions when not connected to Supabase
+let isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Log a warning if using local storage instead of Supabase
+if (isUsingLocalStorage) {
+  console.warn(
+    'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
+  );
+}
