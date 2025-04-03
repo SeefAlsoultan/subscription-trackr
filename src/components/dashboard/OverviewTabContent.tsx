@@ -1,13 +1,13 @@
 
-import { Subscription, SubscriptionFormData } from "@/types/subscription";
-import { SubscriptionStats } from "../SubscriptionStats";
+import { Subscription } from "@/types/subscription";
+import { SubscriptionStats } from "../../components/SubscriptionStats";
 import { DashboardOverview } from "./DashboardOverview";
 import { SubscriptionViewToggle } from "./SubscriptionViewToggle";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
-import { EmptyState } from "../EmptyState";
-import { SubscriptionCard } from "../SubscriptionCard";
-import { SubscriptionList } from "../SubscriptionList";
+import { EmptyState } from "../../components/EmptyState";
+import { SubscriptionCard } from "../../components/SubscriptionCard";
+import { SubscriptionList } from "../../components/SubscriptionList";
 
 interface OverviewTabContentProps {
   loading: boolean;
@@ -17,12 +17,12 @@ interface OverviewTabContentProps {
   onAddSubscription: () => void;
 }
 
-export function OverviewTabContent({
-  loading,
-  subscriptions,
-  view,
-  onViewChange,
-  onAddSubscription
+export function OverviewTabContent({ 
+  loading, 
+  subscriptions, 
+  view, 
+  onViewChange, 
+  onAddSubscription 
 }: OverviewTabContentProps) {
   return (
     <div className="space-y-4">
@@ -37,7 +37,10 @@ export function OverviewTabContent({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium">Your Subscriptions</h3>
-          <SubscriptionViewToggle view={view} onViewChange={onViewChange} />
+          <SubscriptionViewToggle 
+            view={view} 
+            onViewChange={onViewChange} 
+          />
         </div>
         
         {loading ? (
@@ -70,15 +73,17 @@ export function OverviewTabContent({
           <EmptyState onAddSubscription={onAddSubscription} />
         ) : view === "grid" ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {subscriptions.map(subscription => (
-              <SubscriptionCard
-                key={subscription.id}
-                subscription={subscription}
+            {subscriptions.map((subscription) => (
+              <SubscriptionCard 
+                key={subscription.id} 
+                subscription={subscription} 
               />
             ))}
           </div>
         ) : (
-          <SubscriptionList subscriptions={subscriptions} />
+          <SubscriptionList 
+            subscriptions={subscriptions} 
+          />
         )}
       </div>
     </div>

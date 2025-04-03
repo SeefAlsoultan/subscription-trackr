@@ -3,7 +3,7 @@ import { Subscription } from "@/types/subscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
-import { SubscriptionChart } from "../SubscriptionChart";
+import { SubscriptionChart } from "../../components/SubscriptionChart";
 
 interface AnalyticsTabContentProps {
   loading: boolean;
