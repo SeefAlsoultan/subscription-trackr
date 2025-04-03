@@ -6,8 +6,18 @@ import { supabase as supabaseClient } from '@/integrations/supabase/client';
 // This file now uses the main Supabase client from integrations/supabase/client.ts
 export const supabase = supabaseClient;
 
-// In-memory storage for subscriptions as fallback (shouldn't be needed anymore)
+// In-memory storage for subscriptions as fallback
 let localSubscriptions: Subscription[] = [];
+
+// Check if we're using local storage instead of Supabase
+const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Log a warning if using local storage instead of Supabase
+if (isUsingLocalStorage) {
+  console.warn(
+    'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
+  );
+}
 
 export const getCurrentUser = async () => {
   try {
@@ -216,17 +226,3 @@ export const signOut = async () => {
     throw error;
   }
 };
-
-// Get Supabase credentials from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
-
-// In-memory storage for subscriptions when not connected to Supabase
-let isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Log a warning if using local storage instead of Supabase
-if (isUsingLocalStorage) {
-  console.warn(
-    'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
-  );
-}

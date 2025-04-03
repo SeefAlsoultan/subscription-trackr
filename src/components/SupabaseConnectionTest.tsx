@@ -3,19 +3,32 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const SupabaseConnectionTest = () => {
   const [status, setStatus] = useState<'loading' | 'connected' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
   const [projectRef, setProjectRef] = useState<string | null>(null);
+  const [envVars, setEnvVars] = useState({
+    url: Boolean(import.meta.env.VITE_SUPABASE_URL),
+    key: Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY),
+  });
 
   useEffect(() => {
     const checkConnection = async () => {
       try {
+        // Check if environment variables are set
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          throw new Error('Missing Supabase environment variables. Please check your .env file.');
+        }
+
         // Simple query to check if we can connect to Supabase
         const { data, error } = await supabase.from('subscriptions').select('count()', { count: 'exact', head: true });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase query error:', error);
+          throw error;
+        }
         
         // Get project ref from the URL
         const supabaseUrl = supabase.supabaseUrl;
@@ -55,6 +68,24 @@ const SupabaseConnectionTest = () => {
               <Badge variant="outline">{projectRef}</Badge>
             </div>
           )}
+        </div>
+        
+        <div className="mt-4 p-2 rounded text-sm flex items-start gap-2">
+          <div className={`mt-0.5 ${envVars.url ? 'text-green-500' : 'text-red-500'}`}>
+            {envVars.url ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          </div>
+          <div>
+            <span className="font-medium">VITE_SUPABASE_URL:</span> {envVars.url ? 'Found' : 'Missing'}
+          </div>
+        </div>
+        
+        <div className="p-2 rounded text-sm flex items-start gap-2">
+          <div className={`mt-0.5 ${envVars.key ? 'text-green-500' : 'text-red-500'}`}>
+            {envVars.key ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          </div>
+          <div>
+            <span className="font-medium">VITE_SUPABASE_ANON_KEY:</span> {envVars.key ? 'Found' : 'Missing'}
+          </div>
         </div>
         
         {error && (

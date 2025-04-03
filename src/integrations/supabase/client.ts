@@ -3,8 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://fduqtvljaoahcecihfft.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkdXF0dmxqYW9haGNlY2loZmZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1ODc0MTgsImV4cCI6MjA1OTE2MzQxOH0.F1yrK7fcm9ugRpgL-xhyBad9hBXxoTlVJXO8IAKaKds";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Log the URL and key being used (only in development)
 if (import.meta.env.DEV) {
@@ -13,13 +13,21 @@ if (import.meta.env.DEV) {
     SUPABASE_ANON_KEY ? 'Key provided' : 'Key missing');
 }
 
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Supabase URL or Anon Key is missing. Please check your environment variables.');
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+export const supabase = createClient<Database>(
+  SUPABASE_URL || '',
+  SUPABASE_ANON_KEY || '',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
   }
-});
+);
