@@ -1,11 +1,14 @@
 
 import { Dashboard } from "../components/Dashboard";
+import PageTransition from "@/components/PageTransition";
 
 const Index = () => {
   return (
-    <>
-      <Dashboard />
-    </>
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <Dashboard />
+      </div>
+    </PageTransition>
   );
 };
 

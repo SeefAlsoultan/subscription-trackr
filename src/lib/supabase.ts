@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -257,14 +258,25 @@ export const createUser = async (email: string, password: string) => {
  */
 export const signInWithGoogle = async () => {
   try {
+    console.log('Attempting to sign in with Google...');
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account'
+        }
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Google OAuth error details:', error);
+      throw error;
+    }
+    
+    console.log('Google sign-in initiated successfully');
   } catch (error) {
     console.error('Error signing in with Google:', error);
     throw error;
