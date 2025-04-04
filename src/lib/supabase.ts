@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,11 +49,22 @@ export const getSubscriptions = async () => {
     }
 
     return data.map(item => ({
-      ...item,
-      nextBillingDate: new Date(item.nextBillingDate),
-      startDate: new Date(item.startDate),
-      createdAt: new Date(item.createdAt),
-      updatedAt: new Date(item.updatedAt),
+      id: item.id,
+      userId: item.user_id,
+      name: item.name,
+      description: item.description,
+      cost: item.cost,
+      billingCycle: item.billingcycle,
+      startDate: new Date(item.startdate),
+      nextBillingDate: new Date(item.nextbillingdate),
+      category: item.category,
+      url: item.url,
+      logo: item.logo,
+      color: item.color,
+      status: item.status,
+      serviceId: item.serviceid,
+      createdAt: new Date(item.createdat),
+      updatedAt: new Date(item.updatedat),
     })) as Subscription[];
   } catch (error) {
     console.error('Error fetching subscriptions:', error);
@@ -67,7 +77,6 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
   if (!user && !isUsingLocalStorage) throw new Error('User not authenticated');
 
   if (isUsingLocalStorage) {
-    // Handle locally
     const newSubscription = {
       ...subscription,
       id: uuidv4(),
@@ -81,14 +90,22 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
   }
 
   try {
-    // Convert Date objects to ISO strings for Supabase
     const supabaseSubscription = {
-      ...subscription,
-      startDate: subscription.startDate.toISOString(),
-      nextBillingDate: subscription.nextBillingDate.toISOString(),
+      name: subscription.name,
+      description: subscription.description,
+      url: subscription.url,
+      logo: subscription.logo,
+      color: subscription.color,
+      cost: subscription.cost,
+      billingcycle: subscription.billingCycle,
+      category: subscription.category,
+      startdate: subscription.startDate.toISOString(),
+      nextbillingdate: subscription.nextBillingDate.toISOString(),
+      status: subscription.status,
+      serviceid: subscription.serviceId,
       user_id: user?.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdat: new Date().toISOString(),
+      updatedat: new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -102,11 +119,22 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
     }
 
     return {
-      ...data[0],
-      nextBillingDate: new Date(data[0].nextBillingDate),
-      startDate: new Date(data[0].startDate),
-      createdAt: new Date(data[0].createdAt),
-      updatedAt: new Date(data[0].updatedAt),
+      id: data[0].id,
+      userId: data[0].user_id,
+      name: data[0].name,
+      description: data[0].description,
+      cost: data[0].cost,
+      billingCycle: data[0].billingcycle,
+      startDate: new Date(data[0].startdate),
+      nextBillingDate: new Date(data[0].nextbillingdate),
+      category: data[0].category,
+      url: data[0].url,
+      logo: data[0].logo,
+      color: data[0].color,
+      status: data[0].status,
+      serviceId: data[0].serviceid,
+      createdAt: new Date(data[0].createdat),
+      updatedAt: new Date(data[0].updatedat),
     } as Subscription;
   } catch (error) {
     console.error('Error adding subscription:', error);
@@ -116,7 +144,6 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
 
 export const updateSubscriptionInDb = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
   if (isUsingLocalStorage) {
-    // Handle locally
     const index = localSubscriptions.findIndex(sub => sub.id === id);
     if (index !== -1) {
       localSubscriptions[index] = {
@@ -130,13 +157,22 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
   }
 
   try {
-    // Convert Date objects to ISO strings for Supabase
-    const supabaseUpdateData = {
-      ...updatedData,
-      startDate: updatedData.startDate?.toISOString(),
-      nextBillingDate: updatedData.nextBillingDate?.toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const supabaseUpdateData: any = {};
+    
+    if (updatedData.name) supabaseUpdateData.name = updatedData.name;
+    if (updatedData.description !== undefined) supabaseUpdateData.description = updatedData.description;
+    if (updatedData.url !== undefined) supabaseUpdateData.url = updatedData.url;
+    if (updatedData.logo !== undefined) supabaseUpdateData.logo = updatedData.logo;
+    if (updatedData.color !== undefined) supabaseUpdateData.color = updatedData.color;
+    if (updatedData.cost !== undefined) supabaseUpdateData.cost = updatedData.cost;
+    if (updatedData.billingCycle) supabaseUpdateData.billingcycle = updatedData.billingCycle;
+    if (updatedData.category) supabaseUpdateData.category = updatedData.category;
+    if (updatedData.startDate) supabaseUpdateData.startdate = updatedData.startDate.toISOString();
+    if (updatedData.nextBillingDate) supabaseUpdateData.nextbillingdate = updatedData.nextBillingDate.toISOString();
+    if (updatedData.status) supabaseUpdateData.status = updatedData.status;
+    if (updatedData.serviceId !== undefined) supabaseUpdateData.serviceid = updatedData.serviceId;
+    
+    supabaseUpdateData.updatedat = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('subscriptions')
@@ -150,11 +186,22 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
     }
 
     return {
-      ...data[0],
-      nextBillingDate: new Date(data[0].nextBillingDate),
-      startDate: new Date(data[0].startDate),
-      createdAt: new Date(data[0].createdAt),
-      updatedAt: new Date(data[0].updatedAt),
+      id: data[0].id,
+      userId: data[0].user_id,
+      name: data[0].name,
+      description: data[0].description,
+      cost: data[0].cost,
+      billingCycle: data[0].billingcycle,
+      startDate: new Date(data[0].startdate),
+      nextBillingDate: new Date(data[0].nextbillingdate),
+      category: data[0].category,
+      url: data[0].url,
+      logo: data[0].logo,
+      color: data[0].color,
+      status: data[0].status,
+      serviceId: data[0].serviceid,
+      createdAt: new Date(data[0].createdat),
+      updatedAt: new Date(data[0].updatedat),
     } as Subscription;
   } catch (error) {
     console.error('Error updating subscription:', error);
@@ -164,7 +211,6 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
 
 export const deleteSubscriptionFromDb = async (id: string) => {
   if (isUsingLocalStorage) {
-    // Handle locally
     localSubscriptions = localSubscriptions.filter(sub => sub.id !== id);
     return;
   }

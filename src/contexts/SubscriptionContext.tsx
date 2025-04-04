@@ -97,14 +97,23 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
-      // Convert Date objects to ISO strings for Supabase
+      // Convert Date objects to ISO strings for Supabase and use lowercase field names
       const supabaseSubscription = {
-        ...subscription,
         user_id: user.id,
-        startDate: subscription.startDate.toISOString(),
-        nextBillingDate: subscription.nextBillingDate.toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        name: subscription.name,
+        description: subscription.description,
+        url: subscription.url,
+        logo: subscription.logo,
+        color: subscription.color,
+        cost: subscription.cost,
+        billingcycle: subscription.billingCycle,
+        category: subscription.category,
+        startdate: subscription.startDate.toISOString(),
+        nextbillingdate: subscription.nextBillingDate.toISOString(),
+        status: subscription.status,
+        serviceid: subscription.serviceId,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString(),
       };
       
       const { data, error } = await supabase
@@ -117,10 +126,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       if (data && data[0]) {
         const formattedSubscription = {
           ...data[0],
-          nextBillingDate: new Date(data[0].nextBillingDate),
-          startDate: new Date(data[0].startDate),
-          createdAt: new Date(data[0].createdAt),
-          updatedAt: new Date(data[0].updatedAt),
+          nextBillingDate: new Date(data[0].nextbillingdate),
+          startDate: new Date(data[0].startdate),
+          createdAt: new Date(data[0].createdat),
+          updatedAt: new Date(data[0].updatedat),
+          billingCycle: data[0].billingcycle,
+          serviceId: data[0].serviceid,
         } as Subscription;
         
         setSubscriptions([...subscriptions, formattedSubscription]);
@@ -134,13 +145,25 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   
   const updateSubscription = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
     try {
-      // Convert Date objects to ISO strings for Supabase
-      const supabaseUpdateData = {
-        ...updatedData,
-        startDate: updatedData.startDate?.toISOString(),
-        nextBillingDate: updatedData.nextBillingDate?.toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      // Convert Date objects to ISO strings for Supabase and use lowercase field names
+      const supabaseUpdateData: any = {};
+      
+      // Only include fields that are provided in the updatedData
+      if (updatedData.name) supabaseUpdateData.name = updatedData.name;
+      if (updatedData.description !== undefined) supabaseUpdateData.description = updatedData.description;
+      if (updatedData.url !== undefined) supabaseUpdateData.url = updatedData.url;
+      if (updatedData.logo !== undefined) supabaseUpdateData.logo = updatedData.logo;
+      if (updatedData.color !== undefined) supabaseUpdateData.color = updatedData.color;
+      if (updatedData.cost !== undefined) supabaseUpdateData.cost = updatedData.cost;
+      if (updatedData.billingCycle) supabaseUpdateData.billingcycle = updatedData.billingCycle;
+      if (updatedData.category) supabaseUpdateData.category = updatedData.category;
+      if (updatedData.startDate) supabaseUpdateData.startdate = updatedData.startDate.toISOString();
+      if (updatedData.nextBillingDate) supabaseUpdateData.nextbillingdate = updatedData.nextBillingDate.toISOString();
+      if (updatedData.status) supabaseUpdateData.status = updatedData.status;
+      if (updatedData.serviceId !== undefined) supabaseUpdateData.serviceid = updatedData.serviceId;
+      
+      // Always update the updatedat timestamp
+      supabaseUpdateData.updatedat = new Date().toISOString();
       
       const { data, error } = await supabase
         .from('subscriptions')
@@ -153,10 +176,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       if (data && data[0]) {
         const formattedSubscription = {
           ...data[0],
-          nextBillingDate: new Date(data[0].nextBillingDate),
-          startDate: new Date(data[0].startDate),
-          createdAt: new Date(data[0].createdAt),
-          updatedAt: new Date(data[0].updatedAt),
+          nextBillingDate: new Date(data[0].nextbillingdate),
+          startDate: new Date(data[0].startdate),
+          createdAt: new Date(data[0].createdat),
+          updatedAt: new Date(data[0].updatedat),
+          billingCycle: data[0].billingcycle,
+          serviceId: data[0].serviceid,
         } as Subscription;
         
         setSubscriptions(subscriptions.map(subscription => {
