@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSubscriptions } from "@/contexts/SubscriptionContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import { DevelopmentModeWarning } from "./dashboard/DevelopmentModeWarning";
 import { OverviewTabContent } from "./dashboard/OverviewTabContent";
 import { AnalyticsTabContent } from "./dashboard/AnalyticsTabContent";
 import { CalendarTabContent } from "./dashboard/CalendarTabContent";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Dashboard() {
   const { subscriptions, loading } = useSubscriptions();
@@ -43,7 +45,10 @@ export function Dashboard() {
   return (
     <PageTransition>
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <DashboardHeader onAddSubscription={handleOpenDialog} />
+        <div className="flex justify-between items-center">
+          <DashboardHeader onAddSubscription={handleOpenDialog} />
+          <ThemeToggle />
+        </div>
 
         {isUsingLocalStorage && <DevelopmentModeWarning />}
 

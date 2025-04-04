@@ -27,11 +27,14 @@ const SupabaseConnectionTest = () => {
         
         if (error) {
           console.error('Supabase query error:', error);
+          if (error.message.includes('does not exist')) {
+            throw new Error('Table "subscriptions" does not exist. Please run the migrations.');
+          }
           throw error;
         }
         
         // Get project ref from the URL
-        // Instead of using the protected supabaseUrl property, use the URL from env vars
+        // Use the URL from env vars instead of protected supabaseUrl property
         const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL);
         const ref = supabaseUrl.hostname.split('.')[0] || null;
         setProjectRef(ref);
