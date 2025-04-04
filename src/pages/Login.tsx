@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, LogOut } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import PageTransition from '@/components/PageTransition';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -91,6 +92,7 @@ const Login = () => {
   return (
     <PageTransition>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80 p-4">
+        <ThemeToggle />
         <Card className="w-full max-w-md bg-card/95 border-border shadow-xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>

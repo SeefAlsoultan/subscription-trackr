@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Loader2, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import PageTransition from '@/components/PageTransition';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -80,6 +81,7 @@ const Register = () => {
   return (
     <PageTransition>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80 p-4">
+        <ThemeToggle />
         <Card className="w-full max-w-md bg-card/95 border-border shadow-xl">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Create an account</CardTitle>

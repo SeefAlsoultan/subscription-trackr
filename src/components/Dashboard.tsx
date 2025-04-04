@@ -5,18 +5,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionDialog } from "./SubscriptionDialog";
 import { SubscriptionFormData } from "@/types/subscription";
 import PageTransition from "./PageTransition";
-import SupabaseConnectionTest from "./SupabaseConnectionTest";
 import { DashboardHeader } from "./dashboard/DashboardHeader";
 import { DevelopmentModeWarning } from "./dashboard/DevelopmentModeWarning";
 import { OverviewTabContent } from "./dashboard/OverviewTabContent";
 import { AnalyticsTabContent } from "./dashboard/AnalyticsTabContent";
 import { CalendarTabContent } from "./dashboard/CalendarTabContent";
 import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "./ui/button";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function Dashboard() {
   const { subscriptions, loading } = useSubscriptions();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const navigate = useNavigate();
 
   const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -26,6 +31,17 @@ export function Dashboard() {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
   };
 
   const initialFormData: SubscriptionFormData = {
@@ -47,12 +63,20 @@ export function Dashboard() {
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex justify-between items-center">
           <DashboardHeader onAddSubscription={handleOpenDialog} />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut} 
+              className="flex items-center gap-1"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {isUsingLocalStorage && <DevelopmentModeWarning />}
-
-        <SupabaseConnectionTest />
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
@@ -88,6 +112,8 @@ export function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <ThemeToggle />
       
       <SubscriptionDialog
         isOpen={isDialogOpen}
