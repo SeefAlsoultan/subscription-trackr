@@ -1,37 +1,80 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function DevelopmentModeWarning() {
-  return (
-    <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-4">
-          <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-amber-600 dark:text-amber-400"
-            >
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
+  const [authProviders, setAuthProviders] = useState<string[]>([]);
+  const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  useEffect(() => {
+    const checkAuthProviders = async () => {
+      try {
+        // This is a hacky way to check which providers are enabled by trying to sign in with each
+        // In a production app, you would have a proper admin API to check this
+        const googlePromise = supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { skipBrowserRedirect: true }
+        }).then(({ error }) => !error || !error.message.includes('provider is not enabled') ? 'google' : null);
+        
+        // Add more provider checks here if needed
+        
+        const enabledProviders = (await Promise.all([googlePromise]))
+          .filter(Boolean) as string[];
+          
+        setAuthProviders(enabledProviders);
+      } catch (error) {
+        console.error("Error checking auth providers:", error);
+      }
+    };
+    
+    if (!isUsingLocalStorage) {
+      checkAuthProviders();
+    }
+  }, [isUsingLocalStorage]);
+  
+  if (isUsingLocalStorage) {
+    return (
+      <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-4">
+            <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-2">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-medium text-amber-800 dark:text-amber-300">Development Mode</h3>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                Running in local storage mode without Supabase. To enable full functionality, add Supabase credentials to your environment variables.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-medium text-amber-800 dark:text-amber-300">Development Mode</h3>
-            <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-              Running in local storage mode without Supabase. To enable full functionality, add Supabase credentials to your environment variables.
-            </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Show warning if Supabase is configured but Google Auth is not
+  if (!authProviders.includes('google')) {
+    return (
+      <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/30">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-4">
+            <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-2">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-medium text-amber-800 dark:text-amber-300">Google Authentication Not Configured</h3>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                Supabase is connected, but Google authentication is not properly configured. Users won't be able to sign in with Google until you set it up in your Supabase dashboard.
+              </p>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // If both Supabase and Google auth are configured, don't show any warning
+  return null;
 }

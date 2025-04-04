@@ -13,6 +13,8 @@ export type ServiceSubscriptionInfo = {
   features?: string[];  // Added to show what features are supported for this subscription
   canEditDirectly?: boolean;  // Whether the subscription can be edited directly through the API
   canCancelDirectly?: boolean; // Whether the subscription can be cancelled directly through the API
+  integrationStatus?: 'connected' | 'pending' | 'failed';
+  availablePlans?: Array<{name: string, price: number, billingCycle: 'monthly' | 'yearly' | 'quarterly' | 'weekly'}>;
 };
 
 // In a real app, this would integrate with OAuth flows for each service
@@ -30,6 +32,9 @@ export const connectToSubscriptionService = (
     return Promise.resolve(null);
   }
   
+  // Show connecting toast to improve user experience
+  toast.loading(`Connecting to ${service.name}...`);
+  
   if (service.url) {
     // Open the service login page in a new tab
     window.open(service.url, '_blank');
@@ -43,6 +48,8 @@ export const connectToSubscriptionService = (
       // Return mock subscription data
       if (serviceId === 'other') {
         // For "Other", we'll return null and let the user enter details manually
+        toast.dismiss();
+        toast.info("Please enter subscription details manually");
         resolve(null);
       } else {
         const mockData: ServiceSubscriptionInfo = {
@@ -54,14 +61,50 @@ export const connectToSubscriptionService = (
           status: 'active',
           features: getServiceFeatures(serviceId),
           canEditDirectly: canEditDirectly(serviceId),
-          canCancelDirectly: canCancelDirectly(serviceId)
+          canCancelDirectly: canCancelDirectly(serviceId),
+          integrationStatus: 'connected',
+          availablePlans: getAvailablePlans(serviceId)
         };
         
+        toast.dismiss();
         toast.success(`Connected to ${service.name}`);
         resolve(mockData);
       }
     }, 2000); // Simulate a 2-second API call
   });
+};
+
+// Get available plans for each service
+const getAvailablePlans = (serviceId: string) => {
+  const plans: Record<string, Array<{name: string, price: number, billingCycle: 'monthly' | 'yearly' | 'quarterly' | 'weekly'}>> = {
+    netflix: [
+      {name: 'Standard with ads', price: 6.99, billingCycle: 'monthly'},
+      {name: 'Standard', price: 15.49, billingCycle: 'monthly'},
+      {name: 'Premium', price: 22.99, billingCycle: 'monthly'}
+    ],
+    spotify: [
+      {name: 'Premium Individual', price: 9.99, billingCycle: 'monthly'},
+      {name: 'Premium Duo', price: 14.99, billingCycle: 'monthly'},
+      {name: 'Premium Family', price: 16.99, billingCycle: 'monthly'},
+      {name: 'Premium Student', price: 4.99, billingCycle: 'monthly'}
+    ],
+    disney: [
+      {name: 'Disney+ Basic', price: 7.99, billingCycle: 'monthly'},
+      {name: 'Disney+ Premium', price: 13.99, billingCycle: 'monthly'},
+      {name: 'Disney+ Annual', price: 139.99, billingCycle: 'yearly'}
+    ],
+    hulu: [
+      {name: 'Hulu (With Ads)', price: 7.99, billingCycle: 'monthly'},
+      {name: 'Hulu (No Ads)', price: 17.99, billingCycle: 'monthly'}
+    ],
+    youtube: [
+      {name: 'Individual', price: 11.99, billingCycle: 'monthly'},
+      {name: 'Family', price: 22.99, billingCycle: 'monthly'},
+      {name: 'Student', price: 7.99, billingCycle: 'monthly'}
+    ]
+  };
+  
+  return plans[serviceId] || [];
 };
 
 // Get default plan name based on service
@@ -127,23 +170,69 @@ const canCancelDirectly = (serviceId: string): boolean => {
 };
 
 // Simulate changing a plan
-export const changePlan = (serviceId: string, plan: string): Promise<{ success: boolean }> => {
+export const changePlan = (serviceId: string, plan: string): Promise<{ success: boolean, message?: string }> => {
   return new Promise((resolve) => {
+    // Show loading toast
+    toast.loading(`Updating ${subscriptionServices.find(s => s.id === serviceId)?.name} plan...`);
+    
     // Simulate API call
     setTimeout(() => {
+      toast.dismiss();
       toast.success(`Changed plan to ${plan}`);
-      resolve({ success: true });
-    }, 1000);
+      resolve({ 
+        success: true,
+        message: `Successfully updated to ${plan}`
+      });
+    }, 1500);
   });
 };
 
 // Simulate cancelling a subscription
-export const cancelSubscription = (serviceId: string): Promise<{ success: boolean }> => {
+export const cancelSubscription = (serviceId: string): Promise<{ success: boolean, message?: string }> => {
   return new Promise((resolve) => {
+    // Show loading toast
+    toast.loading(`Cancelling ${subscriptionServices.find(s => s.id === serviceId)?.name} subscription...`);
+    
     // Simulate API call
     setTimeout(() => {
+      toast.dismiss();
       toast.success('Subscription cancelled successfully');
-      resolve({ success: true });
-    }, 1000);
+      resolve({ 
+        success: true,
+        message: 'Your subscription has been cancelled. You will still have access until the end of your billing period.'
+      });
+    }, 1500);
+  });
+};
+
+// Simulate connecting to a service that requires authentication
+export const authenticateService = (serviceId: string): Promise<{ success: boolean, message?: string }> => {
+  const service = subscriptionServices.find(s => s.id === serviceId);
+  
+  if (!service) {
+    return Promise.resolve({ 
+      success: false, 
+      message: "Service not found" 
+    });
+  }
+  
+  return new Promise((resolve) => {
+    // Show loading toast
+    toast.loading(`Authenticating with ${service.name}...`);
+    
+    // In a real app, this would redirect to OAuth flow
+    if (service.url) {
+      window.open(service.url, '_blank');
+    }
+    
+    // Simulate API delay
+    setTimeout(() => {
+      toast.dismiss();
+      toast.success(`Connected to ${service.name}`);
+      resolve({ 
+        success: true,
+        message: `Successfully connected to ${service.name}`
+      });
+    }, 2000);
   });
 };
