@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import type { Subscription, SubscriptionFormData } from '@/types/subscription';
+import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
@@ -55,14 +55,14 @@ export const getSubscriptions = async () => {
       name: item.name,
       description: item.description,
       cost: item.cost,
-      billingCycle: item.billingcycle,
+      billingCycle: item.billingcycle as BillingCycle,
       startDate: new Date(item.startdate),
       nextBillingDate: new Date(item.nextbillingdate),
-      category: item.category,
+      category: item.category as SubscriptionCategory,
       url: item.url,
       logo: item.logo,
       color: item.color,
-      status: item.status,
+      status: item.status as SubscriptionStatus,
       serviceId: item.serviceid,
       createdAt: new Date(item.createdat),
       updatedAt: new Date(item.updatedat),
@@ -125,14 +125,14 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
       name: data[0].name,
       description: data[0].description,
       cost: data[0].cost,
-      billingCycle: data[0].billingcycle,
+      billingCycle: data[0].billingcycle as BillingCycle,
       startDate: new Date(data[0].startdate),
       nextBillingDate: new Date(data[0].nextbillingdate),
-      category: data[0].category,
+      category: data[0].category as SubscriptionCategory,
       url: data[0].url,
       logo: data[0].logo,
       color: data[0].color,
-      status: data[0].status,
+      status: data[0].status as SubscriptionStatus,
       serviceId: data[0].serviceid,
       createdAt: new Date(data[0].createdat),
       updatedAt: new Date(data[0].updatedat),
@@ -158,19 +158,19 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
   }
 
   try {
-    const supabaseUpdateData: any = {};
+    const supabaseUpdateData: Record<string, any> = {};
     
-    if (updatedData.name) supabaseUpdateData.name = updatedData.name;
+    if (updatedData.name !== undefined) supabaseUpdateData.name = updatedData.name;
     if (updatedData.description !== undefined) supabaseUpdateData.description = updatedData.description;
     if (updatedData.url !== undefined) supabaseUpdateData.url = updatedData.url;
     if (updatedData.logo !== undefined) supabaseUpdateData.logo = updatedData.logo;
     if (updatedData.color !== undefined) supabaseUpdateData.color = updatedData.color;
     if (updatedData.cost !== undefined) supabaseUpdateData.cost = updatedData.cost;
-    if (updatedData.billingCycle) supabaseUpdateData.billingcycle = updatedData.billingCycle;
-    if (updatedData.category) supabaseUpdateData.category = updatedData.category;
-    if (updatedData.startDate) supabaseUpdateData.startdate = updatedData.startDate.toISOString();
-    if (updatedData.nextBillingDate) supabaseUpdateData.nextbillingdate = updatedData.nextBillingDate.toISOString();
-    if (updatedData.status) supabaseUpdateData.status = updatedData.status;
+    if (updatedData.billingCycle !== undefined) supabaseUpdateData.billingcycle = updatedData.billingCycle;
+    if (updatedData.category !== undefined) supabaseUpdateData.category = updatedData.category;
+    if (updatedData.startDate !== undefined) supabaseUpdateData.startdate = updatedData.startDate.toISOString();
+    if (updatedData.nextBillingDate !== undefined) supabaseUpdateData.nextbillingdate = updatedData.nextBillingDate.toISOString();
+    if (updatedData.status !== undefined) supabaseUpdateData.status = updatedData.status;
     if (updatedData.serviceId !== undefined) supabaseUpdateData.serviceid = updatedData.serviceId;
     
     supabaseUpdateData.updatedat = new Date().toISOString();
@@ -192,14 +192,14 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
       name: data[0].name,
       description: data[0].description,
       cost: data[0].cost,
-      billingCycle: data[0].billingcycle,
+      billingCycle: data[0].billingcycle as BillingCycle,
       startDate: new Date(data[0].startdate),
       nextBillingDate: new Date(data[0].nextbillingdate),
-      category: data[0].category,
+      category: data[0].category as SubscriptionCategory,
       url: data[0].url,
       logo: data[0].logo,
       color: data[0].color,
-      status: data[0].status,
+      status: data[0].status as SubscriptionStatus,
       serviceId: data[0].serviceid,
       createdAt: new Date(data[0].createdat),
       updatedAt: new Date(data[0].updatedat),
