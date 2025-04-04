@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -80,14 +81,19 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
   }
 
   try {
+    // Convert Date objects to ISO strings for Supabase
+    const supabaseSubscription = {
+      ...subscription,
+      startDate: subscription.startDate.toISOString(),
+      nextBillingDate: subscription.nextBillingDate.toISOString(),
+      user_id: user?.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     const { data, error } = await supabase
       .from('subscriptions')
-      .insert([{
-        ...subscription,
-        user_id: user?.id,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }])
+      .insert([supabaseSubscription])
       .select();
 
     if (error) {
@@ -124,12 +130,17 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
   }
 
   try {
+    // Convert Date objects to ISO strings for Supabase
+    const supabaseUpdateData = {
+      ...updatedData,
+      startDate: updatedData.startDate?.toISOString(),
+      nextBillingDate: updatedData.nextBillingDate?.toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     const { data, error } = await supabase
       .from('subscriptions')
-      .update({
-        ...updatedData,
-        updatedAt: new Date().toISOString(),
-      })
+      .update(supabaseUpdateData)
       .eq('id', id)
       .select();
 

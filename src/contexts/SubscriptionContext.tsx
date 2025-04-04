@@ -97,16 +97,19 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
-      const newSubscription = {
+      // Convert Date objects to ISO strings for Supabase
+      const supabaseSubscription = {
         ...subscription,
         user_id: user.id,
+        startDate: subscription.startDate.toISOString(),
+        nextBillingDate: subscription.nextBillingDate.toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       
       const { data, error } = await supabase
         .from('subscriptions')
-        .insert([newSubscription])
+        .insert([supabaseSubscription])
         .select();
         
       if (error) throw error;
@@ -131,14 +134,17 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   
   const updateSubscription = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
     try {
-      const updatePayload = {
+      // Convert Date objects to ISO strings for Supabase
+      const supabaseUpdateData = {
         ...updatedData,
+        startDate: updatedData.startDate?.toISOString(),
+        nextBillingDate: updatedData.nextBillingDate?.toISOString(),
         updatedAt: new Date().toISOString(),
       };
       
       const { data, error } = await supabase
         .from('subscriptions')
-        .update(updatePayload)
+        .update(supabaseUpdateData)
         .eq('id', id)
         .select();
         
