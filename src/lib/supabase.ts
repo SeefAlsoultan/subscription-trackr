@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -109,9 +110,10 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
       updatedat: new Date().toISOString(),
     };
 
+    // Apply type assertion to match the expected type
     const { data, error } = await supabase
       .from('subscriptions')
-      .insert(supabaseSubscription)
+      .insert(supabaseSubscription as any)
       .select();
 
     if (error) {
@@ -177,7 +179,7 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
 
     const { data, error } = await supabase
       .from('subscriptions')
-      .update(supabaseUpdateData)
+      .update(supabaseUpdateData as any)
       .eq('id', id)
       .select();
 

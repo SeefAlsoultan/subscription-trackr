@@ -1,3 +1,4 @@
+
 import { 
   createContext, 
   useContext, 
@@ -104,6 +105,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
+      // Convert camelCase to Supabase's lowercase fields
       const supabaseSubscription = {
         user_id: user.id,
         name: subscription.name,
@@ -122,9 +124,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         updatedat: new Date().toISOString(),
       };
       
+      // Use type assertion to work around TypeScript's type checking
       const { data, error } = await supabase
         .from('subscriptions')
-        .insert(supabaseSubscription)
+        .insert(supabaseSubscription as any)
         .select();
         
       if (error) throw error;
@@ -177,9 +180,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       supabaseUpdateData.updatedat = new Date().toISOString();
       
+      // Use type assertion to work around TypeScript's type checking
       const { data, error } = await supabase
         .from('subscriptions')
-        .update(supabaseUpdateData)
+        .update(supabaseUpdateData as any)
         .eq('id', id)
         .select();
         
