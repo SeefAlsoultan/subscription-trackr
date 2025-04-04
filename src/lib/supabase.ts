@@ -91,6 +91,7 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
   }
 
   try {
+    // Convert camelCase fields to Supabase's lowercase field names
     const supabaseSubscription = {
       name: subscription.name,
       description: subscription.description,

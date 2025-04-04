@@ -48,14 +48,22 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           
           if (data) {
             const formattedData = data.map(item => ({
-              ...item,
               id: item.id,
-              nextBillingDate: new Date(item.nextbillingdate),
+              userId: item.user_id,
+              name: item.name,
+              description: item.description,
+              cost: item.cost,
+              billingCycle: item.billingcycle as BillingCycle,
               startDate: new Date(item.startdate),
+              nextBillingDate: new Date(item.nextbillingdate),
+              category: item.category as SubscriptionCategory,
+              url: item.url,
+              logo: item.logo,
+              color: item.color,
+              status: item.status as SubscriptionStatus,
+              serviceId: item.serviceid,
               createdAt: new Date(item.createdat),
               updatedAt: new Date(item.updatedat),
-              billingCycle: item.billingcycle as BillingCycle,
-              serviceId: item.serviceid,
             })) as Subscription[];
             
             setSubscriptions(formattedData);
@@ -99,7 +107,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
-      // Convert Date objects to ISO strings for Supabase and use lowercase field names
+      // Convert camelCase fields to Supabase's lowercase field names and Date objects to ISO strings
       const supabaseSubscription = {
         user_id: user.id,
         name: subscription.name,
@@ -156,7 +164,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   
   const updateSubscription = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
     try {
-      // Convert Date objects to ISO strings for Supabase and use lowercase field names
+      // Convert camelCase fields to Supabase's lowercase field names and Date objects to ISO strings
       const supabaseUpdateData: Record<string, any> = {};
       
       // Only include fields that are provided in the updatedData

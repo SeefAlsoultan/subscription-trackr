@@ -5,7 +5,7 @@ import PageTransition from "@/components/PageTransition";
 const Index = () => {
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background p-0">
+      <div className="min-h-screen bg-background p-4">
         <Dashboard />
       </div>
     </PageTransition>
