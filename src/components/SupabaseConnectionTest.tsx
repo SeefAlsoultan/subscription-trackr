@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +31,8 @@ const SupabaseConnectionTest = () => {
         }
         
         // Get project ref from the URL
-        const supabaseUrl = new URL(supabase.supabaseUrl);
+        // Instead of using the protected supabaseUrl property, use the URL from env vars
+        const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL);
         const ref = supabaseUrl.hostname.split('.')[0] || null;
         setProjectRef(ref);
         
