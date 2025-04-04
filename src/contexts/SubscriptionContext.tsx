@@ -1,4 +1,3 @@
-
 import { 
   createContext, 
   useContext, 
@@ -79,7 +78,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     
     fetchSubscriptions();
     
-    // Setup notifications for upcoming renewals
     const checkUpcomingRenewals = () => {
       const upcomingRenewals = subscriptions.filter(sub => {
         const daysUntilRenewal = Math.ceil((sub.nextBillingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -94,7 +92,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       });
     };
     
-    // Check less frequently to avoid overwhelming the user with notifications
     if (subscriptions.length > 0) {
       checkUpcomingRenewals();
       const interval = setInterval(checkUpcomingRenewals, 86400000); // Check once a day
@@ -107,7 +104,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       
-      // Convert camelCase fields to Supabase's lowercase field names and Date objects to ISO strings
       const supabaseSubscription = {
         user_id: user.id,
         name: subscription.name,
@@ -128,7 +124,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       const { data, error } = await supabase
         .from('subscriptions')
-        .insert([supabaseSubscription])
+        .insert(supabaseSubscription)
         .select();
         
       if (error) throw error;
@@ -164,10 +160,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   
   const updateSubscription = async (id: string, updatedData: Partial<SubscriptionFormData>) => {
     try {
-      // Convert camelCase fields to Supabase's lowercase field names and Date objects to ISO strings
       const supabaseUpdateData: Record<string, any> = {};
       
-      // Only include fields that are provided in the updatedData
       if (updatedData.name !== undefined) supabaseUpdateData.name = updatedData.name;
       if (updatedData.description !== undefined) supabaseUpdateData.description = updatedData.description;
       if (updatedData.url !== undefined) supabaseUpdateData.url = updatedData.url;
@@ -181,7 +175,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       if (updatedData.status !== undefined) supabaseUpdateData.status = updatedData.status;
       if (updatedData.serviceId !== undefined) supabaseUpdateData.serviceid = updatedData.serviceId;
       
-      // Always update the updatedat timestamp
       supabaseUpdateData.updatedat = new Date().toISOString();
       
       const { data, error } = await supabase
@@ -219,7 +212,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
               ...formattedSubscription
             };
             
-            // Recalculate next billing date if billing cycle changes
             if (updatedData.billingCycle && (updatedData.billingCycle !== subscription.billingCycle)) {
               updatedSubscription.nextBillingDate = calculateNextBillingDate(new Date(), updatedData.billingCycle);
             }

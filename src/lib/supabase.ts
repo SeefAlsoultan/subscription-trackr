@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -112,7 +111,7 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
 
     const { data, error } = await supabase
       .from('subscriptions')
-      .insert([supabaseSubscription])
+      .insert(supabaseSubscription)
       .select();
 
     if (error) {
