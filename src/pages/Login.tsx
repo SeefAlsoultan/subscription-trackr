@@ -10,12 +10,14 @@ import { Loader2, Mail, LogOut, Home } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import PageTransition from '@/components/PageTransition';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { GoogleAuthSetupInfo } from '@/components/GoogleAuthSetupInfo';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Check if user is already logged in
@@ -61,6 +63,7 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setGoogleError(null);
       setGoogleLoading(true);
       const currentUrl = window.location.origin;
       const redirectUrl = `${currentUrl}/dashboard`;
@@ -84,7 +87,9 @@ const Login = () => {
       // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
+      setGoogleError(error.message);
       toast.error(error.message || 'Google sign-in failed');
+    } finally {
       setGoogleLoading(false);
     }
   };
@@ -113,6 +118,10 @@ const Login = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
+            {googleError && googleError.includes("provider is not enabled") && (
+              <GoogleAuthSetupInfo />
+            )}
+
             <Button 
               type="button" 
               className="w-full bg-white text-gray-800 hover:bg-gray-100 h-12" 

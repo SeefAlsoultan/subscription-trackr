@@ -10,6 +10,9 @@ export type ServiceSubscriptionInfo = {
   nextBillingDate: Date;
   startDate: Date;
   status: 'active' | 'pending' | 'cancelled' | 'expired';
+  features?: string[];  // Added to show what features are supported for this subscription
+  canEditDirectly?: boolean;  // Whether the subscription can be edited directly through the API
+  canCancelDirectly?: boolean; // Whether the subscription can be cancelled directly through the API
 };
 
 // In a real app, this would integrate with OAuth flows for each service
@@ -49,6 +52,9 @@ export const connectToSubscriptionService = (
           nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
           startDate: new Date(),
           status: 'active',
+          features: getServiceFeatures(serviceId),
+          canEditDirectly: canEditDirectly(serviceId),
+          canCancelDirectly: canCancelDirectly(serviceId)
         };
         
         toast.success(`Connected to ${service.name}`);
@@ -90,4 +96,54 @@ const getDefaultCost = (serviceId: string): number => {
   };
   
   return costs[serviceId] || 9.99;
+};
+
+// Get available features for service
+const getServiceFeatures = (serviceId: string): string[] => {
+  const features: Record<string, string[]> = {
+    netflix: ['Change plan', 'View billing history', 'Update payment method', 'Cancel subscription'],
+    spotify: ['Change plan', 'View billing history', 'Cancel subscription'],
+    disney: ['Change plan', 'View billing history', 'Update payment method', 'Cancel subscription'],
+    hulu: ['Change plan', 'View billing history', 'Cancel subscription'],
+    amazon: ['View benefits', 'View billing history', 'Manage payment method'],
+    youtube: ['Change plan', 'View billing history', 'Cancel subscription'],
+    appletv: ['View billing history', 'Cancel subscription'],
+    hbomax: ['Change plan', 'View billing history', 'Cancel subscription'],
+  };
+  
+  return features[serviceId] || [];
+};
+
+// Check if service supports direct editing
+const canEditDirectly = (serviceId: string): boolean => {
+  const supportedServices = ['netflix', 'spotify', 'disney', 'hulu', 'youtube', 'hbomax'];
+  return supportedServices.includes(serviceId);
+};
+
+// Check if service supports direct cancellation
+const canCancelDirectly = (serviceId: string): boolean => {
+  const supportedServices = ['netflix', 'spotify', 'disney', 'hulu', 'youtube', 'appletv', 'hbomax'];
+  return supportedServices.includes(serviceId);
+};
+
+// Simulate changing a plan
+export const changePlan = (serviceId: string, plan: string): Promise<{ success: boolean }> => {
+  return new Promise((resolve) => {
+    // Simulate API call
+    setTimeout(() => {
+      toast.success(`Changed plan to ${plan}`);
+      resolve({ success: true });
+    }, 1000);
+  });
+};
+
+// Simulate cancelling a subscription
+export const cancelSubscription = (serviceId: string): Promise<{ success: boolean }> => {
+  return new Promise((resolve) => {
+    // Simulate API call
+    setTimeout(() => {
+      toast.success('Subscription cancelled successfully');
+      resolve({ success: true });
+    }, 1000);
+  });
 };
