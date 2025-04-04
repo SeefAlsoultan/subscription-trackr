@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSubscriptions } from "@/contexts/SubscriptionContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +16,6 @@ export function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
 
-  // Check if we're in development mode and using local storage
   const isUsingLocalStorage = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   const handleOpenDialog = () => {
@@ -40,7 +38,6 @@ export function Dashboard() {
     logo: "",
     color: "#10b981",
     status: "active",
-    notes: "",
   };
 
   return (

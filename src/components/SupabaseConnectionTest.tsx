@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,8 +30,8 @@ const SupabaseConnectionTest = () => {
         }
         
         // Get project ref from the URL
-        const supabaseUrl = supabase.supabaseUrl;
-        const ref = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || null;
+        const supabaseUrl = new URL(supabase.supabaseUrl);
+        const ref = supabaseUrl.hostname.split('.')[0] || null;
         setProjectRef(ref);
         
         setStatus('connected');

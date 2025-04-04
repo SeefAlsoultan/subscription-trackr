@@ -31,7 +31,7 @@ export const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
   const handleSubmit = async (data: SubscriptionFormData) => {
     try {
       if (subscriptionId) {
-        await updateSubscription({ ...data, id: subscriptionId });
+        await updateSubscription(subscriptionId, data);
       } else {
         await addSubscription(data);
       }
@@ -56,9 +56,9 @@ export const SubscriptionDialog: React.FC<SubscriptionDialogProps> = ({
         </DialogHeader>
 
         <SubscriptionForm
-          initialData={initialData}
-          onSubmit={handleSubmit}
-          onCancel={onClose}
+          mode={subscriptionId ? "edit" : "add"}
+          subscriptionId={subscriptionId}
+          onClose={onClose}
         />
 
         <DialogFooter className="mt-4">
