@@ -39,10 +39,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Using string literals for column names to avoid type issues
           const { data, error } = await supabase
             .from('subscriptions')
             .select('*')
-            .eq('user_id', user.id);
+            .filter('user_id', 'eq', user.id);
             
           if (error) throw error;
           
@@ -180,11 +181,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       
       supabaseUpdateData.updatedat = new Date().toISOString();
       
-      // Use type assertion to work around TypeScript's type checking
+      // Using string literals for column names to avoid type issues
       const { data, error } = await supabase
         .from('subscriptions')
         .update(supabaseUpdateData as any)
-        .eq('id', id)
+        .filter('id', 'eq', id)
         .select();
         
       if (error) throw error;
@@ -237,10 +238,11 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     try {
       const subscription = subscriptions.find(sub => sub.id === id);
       
+      // Using string literals for column names to avoid type issues
       const { error } = await supabase
         .from('subscriptions')
         .delete()
-        .eq('id', id);
+        .filter('id', 'eq', id);
         
       if (error) throw error;
       

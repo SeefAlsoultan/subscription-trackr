@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -43,10 +44,11 @@ export const getSubscriptions = async () => {
   if (!user) return [];
 
   try {
+    // Using filter() with string literals instead of eq() to avoid type issues
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
-      .eq('user_id', user.id);
+      .filter('user_id', 'eq', user.id);
 
     if (error) {
       console.error('Error fetching subscriptions:', error);
@@ -125,6 +127,10 @@ export const addSubscriptionToDb = async (subscription: SubscriptionFormData) =>
       throw error;
     }
 
+    if (!data || data.length === 0) {
+      throw new Error('No data returned after insert');
+    }
+
     return {
       id: data[0].id,
       userId: data[0].user_id,
@@ -181,15 +187,20 @@ export const updateSubscriptionInDb = async (id: string, updatedData: Partial<Su
     
     supabaseUpdateData.updatedat = new Date().toISOString();
 
+    // Using filter() with string literals instead of eq() to avoid type issues
     const { data, error } = await supabase
       .from('subscriptions')
       .update(supabaseUpdateData as any)
-      .eq('id', id)
+      .filter('id', 'eq', id)
       .select();
 
     if (error) {
       console.error('Error updating subscription:', error);
       throw error;
+    }
+
+    if (!data || data.length === 0) {
+      throw new Error('No data returned after update');
     }
 
     return {
@@ -223,10 +234,11 @@ export const deleteSubscriptionFromDb = async (id: string) => {
   }
 
   try {
+    // Using filter() with string literals instead of eq() to avoid type issues
     const { error } = await supabase
       .from('subscriptions')
       .delete()
-      .eq('id', id);
+      .filter('id', 'eq', id);
 
     if (error) {
       console.error('Error deleting subscription:', error);

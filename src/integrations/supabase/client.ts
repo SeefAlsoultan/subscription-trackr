@@ -43,7 +43,7 @@ export const supabase = createClient<Database>(
       storageKey: 'supabase.auth.token',
       storage: localStorage,
       flowType: 'pkce', // Recommended for security
-      redirectTo: getSiteUrl() + '/dashboard',
+      // The redirectTo URL is now configured in the individual auth method calls instead of here
     }
   }
 );
@@ -52,7 +52,10 @@ export const supabase = createClient<Database>(
 export const testSupabaseConnection = async () => {
   try {
     // Simple ping query to check connection
-    const { error } = await supabase.from('subscriptions').select('count()', { count: 'exact', head: true });
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('count()', { count: 'exact', head: true });
+      
     if (error) {
       console.error('Supabase connection test failed:', error);
       return { success: false, error: error.message };
