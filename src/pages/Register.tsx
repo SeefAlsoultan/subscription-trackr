@@ -35,11 +35,13 @@ const Register = () => {
 
     try {
       setLoading(true);
+      const redirectUrl = window.location.origin + '/dashboard';
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: redirectUrl,
         }
       });
 
@@ -58,8 +60,7 @@ const Register = () => {
     try {
       setGoogleError(null);
       setGoogleLoading(true);
-      const currentUrl = window.location.origin;
-      const redirectUrl = `${currentUrl}/dashboard`;
+      const redirectUrl = window.location.origin + '/dashboard';
       
       // Using signInWithOAuth with more precise options
       const { error } = await supabase.auth.signInWithOAuth({

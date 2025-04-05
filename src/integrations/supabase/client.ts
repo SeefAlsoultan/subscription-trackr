@@ -17,6 +17,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('Supabase URL or Anon Key is missing. Please check your environment variables.');
 }
 
+// Get the current site URL
+const getSiteUrl = () => {
+  // In development, use a fixed URL (not localhost)
+  if (import.meta.env.DEV) {
+    // If testing locally with a specific port, update this accordingly
+    return 'http://localhost:8080';
+  }
+  
+  // In production, use the current site URL
+  return window.location.origin;
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -29,7 +41,9 @@ export const supabase = createClient<Database>(
       persistSession: true,
       detectSessionInUrl: true,
       storageKey: 'supabase.auth.token',
-      storage: localStorage
+      storage: localStorage,
+      flowType: 'pkce', // Recommended for security
+      redirectTo: getSiteUrl() + '/dashboard',
     }
   }
 );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,8 +64,7 @@ const Login = () => {
     try {
       setGoogleError(null);
       setGoogleLoading(true);
-      const currentUrl = window.location.origin;
-      const redirectUrl = `${currentUrl}/dashboard`;
+      const redirectUrl = window.location.origin + '/dashboard';
       
       console.log('Starting Google sign-in with redirect to:', redirectUrl);
       

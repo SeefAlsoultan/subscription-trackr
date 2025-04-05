@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -25,6 +25,39 @@ const queryClient = new QueryClient({
   },
 });
 
+// Helper component to handle URL hash parameters that might contain authentication info
+const AuthHandler = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Check if there are any hash parameters - could be from OAuth callbacks
+    if (location.hash) {
+      console.log("Auth hash detected:", location.hash);
+      
+      // The Supabase client should automatically handle this, but we'll log it for debugging
+      toast.info("Processing authentication...");
+      
+      // If there's an error in the hash, extract and show it
+      if (location.hash.includes("error=") || location.hash.includes("error_description=")) {
+        try {
+          const params = new URLSearchParams(location.hash.substring(1));
+          const error = params.get("error");
+          const errorDescription = params.get("error_description");
+          
+          if (error || errorDescription) {
+            console.error("Auth error from URL:", error, errorDescription);
+            toast.error(`Authentication error: ${errorDescription || error}`);
+          }
+        } catch (e) {
+          console.error("Failed to parse auth error:", e);
+        }
+      }
+    }
+  }, [location]);
+
+  return null;
+};
+
 const App = () => {
   const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   
@@ -41,6 +74,7 @@ const App = () => {
         }
         
         console.log("Current auth state:", data.session ? "Authenticated" : "Not authenticated");
+        console.log("Current URL:", window.location.href);
         
         // Test Supabase connection with our helper function
         const connectionTest = await testSupabaseConnection();
@@ -89,6 +123,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <AuthHandler />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Landing />} />
@@ -99,6 +134,9 @@ const App = () => {
               <Route element={<AuthLayout />}>
                 <Route path="/dashboard" element={<Index />} />
               </Route>
+              
+              {/* Auth redirect handler for email verification */}
+              <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />

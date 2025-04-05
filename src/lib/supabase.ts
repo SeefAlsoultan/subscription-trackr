@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,6 +18,11 @@ if (isUsingLocalStorage) {
     'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
   );
 }
+
+// Helper function to get site URL for redirects
+const getSiteUrl = () => {
+  return window.location.origin;
+};
 
 export const getCurrentUser = async () => {
   try {
@@ -243,7 +247,7 @@ export const createUser = async (email: string, password: string) => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`
+        emailRedirectTo: `${getSiteUrl()}/dashboard`
       }
     });
 
@@ -265,7 +269,7 @@ export const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${getSiteUrl()}/dashboard`,
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'
