@@ -1,9 +1,9 @@
-
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, testSupabaseConnection } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 const SupabaseConnectionTest = () => {
   const [status, setStatus] = useState<'loading' | 'connected' | 'error'>('loading');
@@ -22,28 +22,24 @@ const SupabaseConnectionTest = () => {
           throw new Error('Missing Supabase environment variables. Please check your .env file.');
         }
 
-        // Simple query to check if we can connect to Supabase
-        const { data, error } = await supabase.from('subscriptions').select('count()', { count: 'exact', head: true });
-        
-        if (error) {
-          console.error('Supabase query error:', error);
-          if (error.message.includes('does not exist')) {
-            throw new Error('Table "subscriptions" does not exist. Please run the migrations.');
-          }
-          throw error;
+        // Test connection with our helper function
+        const result = await testSupabaseConnection();
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to connect to Supabase');
         }
         
         // Get project ref from the URL
-        // Use the URL from env vars instead of protected supabaseUrl property
         const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL);
         const ref = supabaseUrl.hostname.split('.')[0] || null;
         setProjectRef(ref);
         
         setStatus('connected');
+        toast.success('Connected to Supabase successfully');
       } catch (err: any) {
         console.error('Supabase connection error:', err);
         setStatus('error');
         setError(err.message || 'Unknown error');
+        toast.error('Database connection error');
       }
     };
 

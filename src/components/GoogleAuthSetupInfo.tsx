@@ -1,39 +1,65 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExternalLink, CheckCircle } from "lucide-react";
+import { ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const GoogleAuthSetupInfo = () => {
   const projectId = "fduqtvljaoahcecihfft";
   const [isConfigured, setIsConfigured] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if Google auth is configured by attempting a provider sign-in
-    // This will not actually sign in, but will tell us if the provider is enabled
     const checkGoogleAuthConfig = async () => {
       try {
-        // We're just checking if the provider is enabled, not actually signing in
-        const { error } = await supabase.auth.signInWithOAuth({
+        setIsChecking(true);
+        
+        // More reliable way to check Google provider status - first try a direct API call
+        // This doesn't trigger a browser redirect and is more reliable
+        const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: window.location.origin,
-            skipBrowserRedirect: true // This prevents the actual redirect
+            skipBrowserRedirect: true // Prevents the actual redirect
           }
         });
         
-        // If there's no error or if the error doesn't mention "provider is not enabled"
-        // then Google auth is likely configured
-        setIsConfigured(!error || !error.message.includes('provider is not enabled'));
-      } catch (error) {
+        console.log("Google auth check:", data, error);
+        
+        // If there's no error about provider not being enabled, then Google auth is configured
+        const providerEnabled = !(error && error.message && error.message.includes('provider is not enabled'));
+        setIsConfigured(providerEnabled);
+        
+        if (!providerEnabled) {
+          setError(error?.message || 'Google provider is not enabled');
+        } else {
+          setError(null);
+        }
+      } catch (error: any) {
         console.error("Error checking Google auth configuration:", error);
         setIsConfigured(false);
+        setError(error.message || 'Error checking Google authentication');
+      } finally {
+        setIsChecking(false);
       }
     };
     
     checkGoogleAuthConfig();
   }, []);
+
+  if (isChecking) {
+    return (
+      <Alert className="my-4 border-blue-500">
+        <AlertTitle className="text-blue-500 font-medium flex items-center gap-2">
+          Checking Google Authentication Configuration...
+        </AlertTitle>
+      </Alert>
+    );
+  }
 
   if (isConfigured) {
     return (
@@ -51,7 +77,10 @@ export const GoogleAuthSetupInfo = () => {
   
   return (
     <Alert className="my-4 border-amber-500">
-      <AlertTitle className="text-amber-500 font-medium">Google Authentication Not Configured</AlertTitle>
+      <AlertTitle className="text-amber-500 font-medium flex items-center gap-2">
+        <AlertCircle className="h-5 w-5" />
+        Google Authentication Not Configured
+      </AlertTitle>
       <AlertDescription className="mt-2">
         <p className="mb-2">To enable Google authentication, you need to configure it in your Supabase project:</p>
         <ol className="list-decimal pl-5 mb-3 space-y-1 text-sm">
@@ -61,6 +90,11 @@ export const GoogleAuthSetupInfo = () => {
           <li>Add your app's domain to the authorized domains in Google Cloud Console</li>
           <li>Add the redirect URL from Supabase to your Google OAuth configuration</li>
         </ol>
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded mb-3">
+            <p className="text-sm text-red-600 dark:text-red-400">Error: {error}</p>
+          </div>
+        )}
         <div className="flex justify-end">
           <Button 
             variant="outline" 

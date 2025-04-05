@@ -70,6 +70,7 @@ const Login = () => {
       
       console.log('Starting Google sign-in with redirect to:', redirectUrl);
       
+      // Make sure to specify all required options
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -81,14 +82,23 @@ const Login = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Google sign-in error details:', error);
+        if (error.message.includes('provider is not enabled')) {
+          toast.error('Google authentication is not properly configured');
+        } else {
+          toast.error(error.message || 'Google sign-in failed');
+        }
+        setGoogleError(error.message);
+        throw error;
+      }
       
-      console.log('Google sign-in initiated:', data);
+      console.log('Google sign-in initiated successfully:', data);
+      toast.info('Redirecting to Google for authentication...');
       // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setGoogleError(error.message);
-      toast.error(error.message || 'Google sign-in failed');
     } finally {
       setGoogleLoading(false);
     }

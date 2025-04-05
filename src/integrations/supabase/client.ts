@@ -27,7 +27,25 @@ export const supabase = createClient<Database>(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storageKey: 'supabase.auth.token',
+      storage: localStorage
     }
   }
 );
+
+// Export a function to test connection
+export const testSupabaseConnection = async () => {
+  try {
+    // Simple ping query to check connection
+    const { error } = await supabase.from('subscriptions').select('count()', { count: 'exact', head: true });
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    console.error('Supabase connection error:', err);
+    return { success: false, error: err.message };
+  }
+};

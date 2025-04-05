@@ -11,8 +11,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import AuthLayout from "./components/AuthLayout";
-import { useEffect } from "react";
-import { supabase } from "./integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { supabase, testSupabaseConnection } from "./integrations/supabase/client";
 import { toast } from "sonner";
 
 // Create a new QueryClient instance
@@ -26,8 +26,10 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  
   useEffect(() => {
-    // Log authentication state and Supabase configuration on app load
+    // Log authentication state and check Supabase configuration on app load
     const checkAuth = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
@@ -40,21 +42,25 @@ const App = () => {
         
         console.log("Current auth state:", data.session ? "Authenticated" : "Not authenticated");
         
-        // Test Supabase connection by making a simple query
-        const { error: testError } = await supabase.from('subscriptions').select('count()', { count: 'exact', head: true });
+        // Test Supabase connection with our helper function
+        const connectionTest = await testSupabaseConnection();
         
-        if (testError) {
-          console.error("Supabase connection test failed:", testError);
-          if (testError.message.includes("relation") && testError.message.includes("does not exist")) {
+        if (!connectionTest.success) {
+          console.error("Supabase connection test failed:", connectionTest.error);
+          setDbStatus('error');
+          
+          if (connectionTest.error?.includes("relation") && connectionTest.error?.includes("does not exist")) {
             toast.error("Database tables not found. Please run migrations.");
           } else {
             toast.error("Database connection error");
           }
         } else {
           console.log("Supabase connection test: successful");
+          setDbStatus('connected');
         }
       } catch (error) {
         console.error("Supabase initialization error:", error);
+        setDbStatus('error');
       }
     };
     
