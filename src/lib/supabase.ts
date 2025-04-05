@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
@@ -255,11 +254,14 @@ export const deleteSubscriptionFromDb = async (id: string) => {
  */
 export const createUser = async (email: string, password: string) => {
   try {
+    const redirectUrl = `${getSiteUrl()}/dashboard`;
+    console.log('Email signup with redirect to:', redirectUrl);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${getSiteUrl()}/dashboard`
+        emailRedirectTo: redirectUrl
       }
     });
 
@@ -278,10 +280,13 @@ export const signInWithGoogle = async () => {
   try {
     console.log('Attempting to sign in with Google...');
     
+    const redirectUrl = `${getSiteUrl()}/dashboard`;
+    console.log('Google Auth with redirect to:', redirectUrl);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${getSiteUrl()}/dashboard`,
+        redirectTo: redirectUrl,
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account'

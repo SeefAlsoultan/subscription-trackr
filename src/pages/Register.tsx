@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +34,22 @@ const Register = () => {
 
     try {
       setLoading(true);
-      const redirectUrl = window.location.origin + '/dashboard';
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (!signInError && signInData.session) {
+        toast.success('Welcome back! You have been logged in.');
+        navigate('/dashboard');
+        return;
+      }
+      
+      if (signInError && !signInError.message.includes('Invalid login credentials')) {
+        throw signInError;
+      }
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -60,9 +74,8 @@ const Register = () => {
     try {
       setGoogleError(null);
       setGoogleLoading(true);
-      const redirectUrl = window.location.origin + '/dashboard';
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
-      // Using signInWithOAuth with more precise options
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -75,7 +88,6 @@ const Register = () => {
       });
 
       if (error) throw error;
-      // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setGoogleError(error.message);

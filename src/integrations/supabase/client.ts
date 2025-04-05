@@ -19,14 +19,16 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // Get the current site URL
 const getSiteUrl = () => {
-  // In development, use a fixed URL (not localhost)
-  if (import.meta.env.DEV) {
-    // If testing locally with a specific port, update this accordingly
-    return 'http://localhost:8080';
+  const url = window.location.origin;
+  
+  // Make sure we're not returning a localhost URL in production
+  if (!import.meta.env.DEV && url.includes('localhost')) {
+    console.warn('Detected localhost in production environment, using fallback URL');
+    // Use a fallback URL for production if needed
+    return 'https://your-production-url.com';
   }
   
-  // In production, use the current site URL
-  return window.location.origin;
+  return url;
 };
 
 // Import the supabase client like this:
@@ -54,12 +56,15 @@ export const testSupabaseConnection = async () => {
     // Simple ping query to check connection
     const { data, error } = await supabase
       .from('subscriptions')
-      .select('count()', { count: 'exact', head: true });
+      .select('count()', { count: 'exact', head: true })
+      .limit(1);
       
     if (error) {
       console.error('Supabase connection test failed:', error);
       return { success: false, error: error.message };
     }
+    
+    console.log('Supabase connection test successful');
     return { success: true };
   } catch (err: any) {
     console.error('Supabase connection error:', err);
