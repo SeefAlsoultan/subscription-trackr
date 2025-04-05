@@ -69,28 +69,26 @@ const App = () => {
         
         if (error) {
           console.error("Supabase auth error:", error);
-          toast.error("Authentication service error");
           return;
         }
         
         console.log("Current auth state:", data.session ? "Authenticated" : "Not authenticated");
-        console.log("Current URL:", window.location.href);
         
-        // Test Supabase connection with our helper function
-        const connectionTest = await testSupabaseConnection();
-        
-        if (!connectionTest.success) {
-          console.error("Supabase connection test failed:", connectionTest.error);
-          setDbStatus('error');
+        // Test Supabase connection with our helper function - ONLY ONCE on initial load
+        if (dbStatus === 'checking') {
+          const connectionTest = await testSupabaseConnection();
           
-          if (connectionTest.error?.includes("relation") && connectionTest.error?.includes("does not exist")) {
-            toast.error("Database tables not found. Please run migrations.");
+          if (!connectionTest.success) {
+            console.error("Supabase connection test failed:", connectionTest.error);
+            setDbStatus('error');
+            
+            if (connectionTest.error?.includes("relation") && connectionTest.error?.includes("does not exist")) {
+              console.error("Database tables not found. Please run migrations.");
+            }
           } else {
-            toast.error("Database connection error");
+            console.log("Supabase connection test: successful");
+            setDbStatus('connected');
           }
-        } else {
-          console.log("Supabase connection test: successful");
-          setDbStatus('connected');
         }
       } catch (error) {
         console.error("Supabase initialization error:", error);
@@ -114,7 +112,7 @@ const App = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [dbStatus]);
 
   return (
     <QueryClientProvider client={queryClient}>

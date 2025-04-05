@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase, testSupabaseConnection } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +14,15 @@ const SupabaseConnectionTest = () => {
     url: Boolean(import.meta.env.VITE_SUPABASE_URL),
     key: Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY),
   });
+  const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
 
   useEffect(() => {
     const checkConnection = async () => {
       try {
+        // Only attempt the connection check once
+        if (hasAttemptedConnection) return;
+        setHasAttemptedConnection(true);
+
         // Check if environment variables are set
         if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
           throw new Error('Missing Supabase environment variables. Please check your .env file.');
@@ -34,17 +40,19 @@ const SupabaseConnectionTest = () => {
         setProjectRef(ref);
         
         setStatus('connected');
-        toast.success('Connected to Supabase successfully');
+        // Do not show toast notification on successful connection
+        // This helps prevent unnecessary messages
       } catch (err: any) {
         console.error('Supabase connection error:', err);
         setStatus('error');
         setError(err.message || 'Unknown error');
-        toast.error('Database connection error');
+        // Only show a toast if there's a real error that needs user attention
+        toast.error('Database connection error. Check console for details.');
       }
     };
 
     checkConnection();
-  }, []);
+  }, [hasAttemptedConnection]);
 
   return (
     <Card className="mb-6">
