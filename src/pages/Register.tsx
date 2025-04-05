@@ -37,6 +37,7 @@ const Register = () => {
       setLoading(true);
       const redirectUrl = `${window.location.origin}/dashboard`;
       
+      // First try to sign in - if the account already exists, just log them in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -52,6 +53,7 @@ const Register = () => {
         throw signInError;
       }
       
+      // If we get here, the account doesn't exist, so create it
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -75,7 +77,11 @@ const Register = () => {
     try {
       setGoogleError(null);
       setGoogleLoading(true);
+      
+      // Get the full origin for the redirect
       const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      console.log('Starting Google sign-in/sign-up with redirect to:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -88,11 +94,26 @@ const Register = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Google sign-in error details:', error);
+        
+        if (error.message.includes('provider is not enabled')) {
+          toast.error('Google authentication is not properly configured');
+        } else {
+          toast.error(error.message || 'Google sign-in failed');
+        }
+        
+        setGoogleError(error.message);
+        throw error;
+      }
+      
+      console.log('Google sign-in initiated successfully');
+      toast.info('Redirecting to Google for authentication...');
+      // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setGoogleError(error.message);
-      toast.error(error.message || 'Google sign-in failed');
+    } finally {
       setGoogleLoading(false);
     }
   };

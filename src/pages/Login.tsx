@@ -66,12 +66,11 @@ const Login = () => {
       setGoogleError(null);
       setGoogleLoading(true);
       
-      // Get the current origin to use for redirects
+      // Get the full origin for the redirect
       const redirectUrl = `${window.location.origin}/dashboard`;
       
       console.log('Starting Google sign-in with redirect to:', redirectUrl);
       
-      // Make sure to specify all required options
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -85,6 +84,7 @@ const Login = () => {
 
       if (error) {
         console.error('Google sign-in error details:', error);
+        // Check for provider not enabled error
         if (error.message.includes('provider is not enabled')) {
           toast.error('Google authentication is not properly configured');
         } else {

@@ -19,7 +19,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // Get the current site URL
 const getSiteUrl = () => {
-  const url = window.location.origin;
+  let url = window.location.origin;
   
   // Make sure we're not returning a localhost URL in production
   if (!import.meta.env.DEV && url.includes('localhost')) {
@@ -45,7 +45,6 @@ export const supabase = createClient<Database>(
       storageKey: 'supabase.auth.token',
       storage: localStorage,
       flowType: 'pkce', // Recommended for security
-      // The redirectTo URL is now configured in the individual auth method calls instead of here
     }
   }
 );

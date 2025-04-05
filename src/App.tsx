@@ -30,17 +30,25 @@ const AuthHandler = () => {
   const location = useLocation();
   
   useEffect(() => {
-    // Check if there are any hash parameters - could be from OAuth callbacks
-    if (location.hash) {
-      console.log("Auth hash detected:", location.hash);
+    // Check if there are any hash parameters, URL parameters, or code - could be from OAuth callbacks
+    if (location.hash || location.search) {
+      const hasAuthCode = location.search.includes('code=');
       
-      // The Supabase client should automatically handle this, but we'll log it for debugging
-      toast.info("Processing authentication...");
+      if (hasAuthCode) {
+        console.log("Auth code detected in URL:", location.search);
+        // Log the full URL for debugging
+        console.log("Full current URL:", window.location.href);
+        
+        toast.info("Processing authentication...");
+      }
       
       // If there's an error in the hash, extract and show it
-      if (location.hash.includes("error=") || location.hash.includes("error_description=")) {
+      if (location.hash.includes("error=") || location.hash.includes("error_description=") || 
+          location.search.includes("error=") || location.search.includes("error_description=")) {
         try {
-          const params = new URLSearchParams(location.hash.substring(1));
+          const params = new URLSearchParams(
+            location.hash ? location.hash.substring(1) : location.search
+          );
           const error = params.get("error");
           const errorDescription = params.get("error_description");
           
@@ -73,6 +81,8 @@ const App = () => {
         }
         
         console.log("Current auth state:", data.session ? "Authenticated" : "Not authenticated");
+        // Log the current URL for debugging
+        console.log("Current URL:", window.location.href);
         
         // Test Supabase connection with our helper function - ONLY ONCE on initial load
         if (dbStatus === 'checking') {
@@ -133,8 +143,9 @@ const App = () => {
                 <Route path="/dashboard" element={<Index />} />
               </Route>
               
-              {/* Auth redirect handler for email verification */}
+              {/* Auth redirect handler for email verification and oauth callbacks */}
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
+              <Route path="/auth/v1/callback" element={<Navigate to="/dashboard" />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />

@@ -280,7 +280,8 @@ export const signInWithGoogle = async () => {
   try {
     console.log('Attempting to sign in with Google...');
     
-    const redirectUrl = `${getSiteUrl()}/dashboard`;
+    // Always use the actual origin of the site
+    const redirectUrl = `${window.location.origin}/dashboard`;
     console.log('Google Auth with redirect to:', redirectUrl);
     
     const { error } = await supabase.auth.signInWithOAuth({
