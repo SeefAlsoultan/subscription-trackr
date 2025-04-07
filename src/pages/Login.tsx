@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase, getAuthRedirectUrl } from '@/integrations/supabase/client';
@@ -20,7 +19,6 @@ const Login = () => {
   const [googleError, setGoogleError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -48,7 +46,6 @@ const Login = () => {
 
       if (error) throw error;
       
-      // Log successful login and session data
       console.log('Login successful:', data);
       
       toast.success('Logged in successfully!');
@@ -66,7 +63,6 @@ const Login = () => {
       setGoogleError(null);
       setGoogleLoading(true);
       
-      // Get the correct redirect URL
       const redirectUrl = getAuthRedirectUrl();
       
       console.log('Starting Google sign-in with redirect to:', redirectUrl);
@@ -84,7 +80,6 @@ const Login = () => {
 
       if (error) {
         console.error('Google sign-in error details:', error);
-        // Check for provider not enabled error
         if (error.message.includes('provider is not enabled')) {
           toast.error('Google authentication is not properly configured');
         } else {
@@ -96,7 +91,6 @@ const Login = () => {
       
       console.log('Google sign-in initiated successfully:', data);
       toast.info('Redirecting to Google for authentication...');
-      // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setGoogleError(error.message);
