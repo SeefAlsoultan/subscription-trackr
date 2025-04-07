@@ -33,6 +33,9 @@ const AuthHandler = () => {
     // Log current location for debugging OAuth
     if (location.pathname.includes('/auth/callback') || location.search.includes('code=')) {
       console.log('Auth callback detected - Current URL:', window.location.href);
+      console.log('Auth callback - Origin:', window.location.origin);
+      console.log('Auth callback - Path:', location.pathname);
+      console.log('Auth callback - Search:', location.search);
     }
     
     // Check if there are any hash parameters, URL parameters, or code - could be from OAuth callbacks
@@ -150,6 +153,8 @@ const App = () => {
               
               {/* Auth redirect handler for email verification and oauth callbacks */}
               <Route path="/auth/callback" element={<Navigate to="/dashboard" />} />
+              
+              {/* Legacy callback path handling for v1 API - very important */}
               <Route path="/auth/v1/callback" element={<Navigate to="/dashboard" />} />
               
               {/* Catch-all route */}

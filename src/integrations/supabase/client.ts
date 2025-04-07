@@ -19,15 +19,12 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // Get the current site URL
 const getSiteUrl = () => {
-  let url = window.location.origin;
+  // Always use window.location.origin to get the current URL
+  const url = window.location.origin;
+  console.log('Current site URL:', url);
   
-  // Make sure we're not returning a localhost URL in production
-  if (!import.meta.env.DEV && url.includes('localhost')) {
-    console.warn('Detected localhost in production environment, using fallback URL');
-    // Use a fallback URL for production if needed
-    return 'https://subscription-trackr.lovable.app';
-  }
-  
+  // In development, this will be localhost
+  // In production, it will be the deployed URL
   return url;
 };
 
@@ -52,7 +49,11 @@ export const supabase = createClient<Database>(
 // Get the correct callback URL for auth redirects
 export const getAuthRedirectUrl = () => {
   const baseUrl = getSiteUrl();
-  return `${baseUrl}/auth/callback`;
+  const callbackPath = '/auth/callback';
+  const redirectUrl = `${baseUrl}${callbackPath}`;
+  
+  console.log('Generated auth redirect URL:', redirectUrl);
+  return redirectUrl;
 };
 
 // Export a function to test connection
