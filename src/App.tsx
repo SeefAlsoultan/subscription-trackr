@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -28,6 +28,7 @@ const queryClient = new QueryClient({
 // Helper component to handle URL hash parameters that might contain authentication info
 const AuthHandler = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Log current location for debugging OAuth
@@ -41,6 +42,35 @@ const AuthHandler = () => {
       if (location.search.includes('code=')) {
         console.log('Auth code parameter detected in URL');
         toast.info("Processing authentication...");
+        
+        // Check if user is authenticated and redirect to dashboard
+        const checkSession = async () => {
+          try {
+            const { data } = await supabase.auth.getSession();
+            if (data.session) {
+              console.log('User is authenticated, redirecting to dashboard');
+              navigate('/dashboard');
+            } else {
+              console.log('No session found after OAuth callback, checking again in 1s');
+              // Sometimes there's a delay in session creation, retry after a short delay
+              setTimeout(async () => {
+                const { data: retryData } = await supabase.auth.getSession();
+                if (retryData.session) {
+                  console.log('Session found on retry, redirecting to dashboard');
+                  navigate('/dashboard');
+                } else {
+                  console.log('Still no session after retry');
+                  toast.error("Authentication failed. Please try again.");
+                  navigate('/login');
+                }
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Error checking session:', error);
+          }
+        };
+        
+        checkSession();
       }
     }
     
@@ -75,7 +105,7 @@ const AuthHandler = () => {
         }
       }
     }
-  }, [location]);
+  }, [location, navigate]);
 
   return null;
 };

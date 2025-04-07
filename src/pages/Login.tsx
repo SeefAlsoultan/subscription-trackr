@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase, getAuthRedirectUrl } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ const Login = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        console.log('User already has a session, redirecting to dashboard');
         navigate('/dashboard');
       }
     };

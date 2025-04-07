@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase, getAuthRedirectUrl } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,19 @@ const Register = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log('User already has a session, redirecting to dashboard');
+        navigate('/dashboard');
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +58,7 @@ const Register = () => {
       });
       
       if (!signInError && signInData.session) {
+        console.log('Existing user signed in successfully');
         toast.success('Welcome back! You have been logged in.');
         navigate('/dashboard');
         return;
@@ -55,7 +69,7 @@ const Register = () => {
       }
       
       // If we get here, the account doesn't exist, so create it
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -65,9 +79,17 @@ const Register = () => {
 
       if (error) throw error;
       
-      toast.success('Registration successful! Please check your email to verify your account.');
-      navigate('/login');
+      if (data.session) {
+        console.log('New user created and signed in successfully');
+        toast.success('Registration successful! Redirecting to dashboard...');
+        navigate('/dashboard');
+      } else {
+        console.log('New user created, email confirmation required');
+        toast.success('Registration successful! Please check your email to verify your account.');
+        navigate('/login');
+      }
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast.error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
