@@ -36,6 +36,7 @@ const Register = () => {
     try {
       setLoading(true);
       const redirectUrl = getAuthRedirectUrl();
+      console.log('Email signup with redirect URL:', redirectUrl);
       
       // First try to sign in - if the account already exists, just log them in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -109,7 +110,6 @@ const Register = () => {
       
       console.log('Google sign-in initiated successfully');
       toast.info('Redirecting to Google for authentication...');
-      // Browser will be redirected by Supabase
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setGoogleError(error.message);

@@ -36,6 +36,12 @@ const AuthHandler = () => {
       console.log('Auth callback - Origin:', window.location.origin);
       console.log('Auth callback - Path:', location.pathname);
       console.log('Auth callback - Search:', location.search);
+      
+      // For Google OAuth callbacks with code parameter
+      if (location.search.includes('code=')) {
+        console.log('Auth code parameter detected in URL');
+        toast.info("Processing authentication...");
+      }
     }
     
     // Check if there are any hash parameters, URL parameters, or code - could be from OAuth callbacks

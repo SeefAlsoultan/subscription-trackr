@@ -49,6 +49,7 @@ export const supabase = createClient<Database>(
 // Get the correct callback URL for auth redirects
 export const getAuthRedirectUrl = () => {
   const baseUrl = getSiteUrl();
+  // Always use the /auth/callback path for OAuth redirects
   const callbackPath = '/auth/callback';
   const redirectUrl = `${baseUrl}${callbackPath}`;
   
