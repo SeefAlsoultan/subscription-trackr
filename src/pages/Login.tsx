@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getAuthRedirectUrl } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,8 +66,8 @@ const Login = () => {
       setGoogleError(null);
       setGoogleLoading(true);
       
-      // Get the full origin for the redirect
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      // Get the correct redirect URL
+      const redirectUrl = getAuthRedirectUrl();
       
       console.log('Starting Google sign-in with redirect to:', redirectUrl);
       

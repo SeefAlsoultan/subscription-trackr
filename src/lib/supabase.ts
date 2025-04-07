@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory, SubscriptionStatus } from '@/types/subscription';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase as supabaseClient } from '@/integrations/supabase/client';
+import { supabase as supabaseClient, getAuthRedirectUrl } from '@/integrations/supabase/client';
 
 // This file now uses the main Supabase client from integrations/supabase/client.ts
 export const supabase = supabaseClient;
@@ -18,11 +18,6 @@ if (isUsingLocalStorage) {
     'Supabase credentials not found. Running in local mode. To connect to Supabase, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.'
   );
 }
-
-// Helper function to get site URL for redirects
-const getSiteUrl = () => {
-  return window.location.origin;
-};
 
 export const getCurrentUser = async () => {
   try {
@@ -254,7 +249,7 @@ export const deleteSubscriptionFromDb = async (id: string) => {
  */
 export const createUser = async (email: string, password: string) => {
   try {
-    const redirectUrl = `${getSiteUrl()}/dashboard`;
+    const redirectUrl = getAuthRedirectUrl();
     console.log('Email signup with redirect to:', redirectUrl);
     
     const { data, error } = await supabase.auth.signUp({
@@ -280,8 +275,8 @@ export const signInWithGoogle = async () => {
   try {
     console.log('Attempting to sign in with Google...');
     
-    // Always use the actual origin of the site
-    const redirectUrl = `${window.location.origin}/dashboard`;
+    // Use the standardized redirect URL
+    const redirectUrl = getAuthRedirectUrl();
     console.log('Google Auth with redirect to:', redirectUrl);
     
     const { error } = await supabase.auth.signInWithOAuth({

@@ -25,7 +25,7 @@ const getSiteUrl = () => {
   if (!import.meta.env.DEV && url.includes('localhost')) {
     console.warn('Detected localhost in production environment, using fallback URL');
     // Use a fallback URL for production if needed
-    return 'https://your-production-url.com';
+    return 'https://subscription-trackr.lovable.app';
   }
   
   return url;
@@ -48,6 +48,12 @@ export const supabase = createClient<Database>(
     }
   }
 );
+
+// Get the correct callback URL for auth redirects
+export const getAuthRedirectUrl = () => {
+  const baseUrl = getSiteUrl();
+  return `${baseUrl}/auth/callback`;
+};
 
 // Export a function to test connection
 export const testSupabaseConnection = async () => {

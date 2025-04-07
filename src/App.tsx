@@ -30,6 +30,11 @@ const AuthHandler = () => {
   const location = useLocation();
   
   useEffect(() => {
+    // Log current location for debugging OAuth
+    if (location.pathname.includes('/auth/callback') || location.search.includes('code=')) {
+      console.log('Auth callback detected - Current URL:', window.location.href);
+    }
+    
     // Check if there are any hash parameters, URL parameters, or code - could be from OAuth callbacks
     if (location.hash || location.search) {
       const hasAuthCode = location.search.includes('code=');

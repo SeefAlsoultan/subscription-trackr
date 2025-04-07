@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getAuthRedirectUrl } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +35,7 @@ const Register = () => {
 
     try {
       setLoading(true);
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = getAuthRedirectUrl();
       
       // First try to sign in - if the account already exists, just log them in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -78,8 +78,8 @@ const Register = () => {
       setGoogleError(null);
       setGoogleLoading(true);
       
-      // Get the full origin for the redirect
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      // Get the correct redirect URL
+      const redirectUrl = getAuthRedirectUrl();
       
       console.log('Starting Google sign-in/sign-up with redirect to:', redirectUrl);
       
